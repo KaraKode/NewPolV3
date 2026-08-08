@@ -287,5 +287,9 @@
   "POLARIS.Creation.coutType": "Genetic type cost",
   "POLARIS.Creation.Avertissement.repartitionManquante": "This archetype's automatic distribution is not set in the configuration yet: levels are left as they are, to be distributed by hand.",
   "POLARIS.Creation.Avertissement.coutTypeInconnu": "This genetic type's creation point cost is not set yet: it counts as zero, so the displayed total is optimistic.",
-  "POLARIS.Reglage.ambiance.choix": "{ton} — Luck {chance}, {points} points"
+  "POLARIS.Reglage.ambiance.choix": "{ton} — Luck {chance}, {points} points",
+  "POLARIS.Infobulle.bonusSecondaire": "Bonus or penalty, always added to the calculated value.",
+  "POLARIS.Infobulle.totalSecondaire": "Effective value, bonus included. This is what counts in play.",
+  "POLARIS.Infobulle.tableManquante": "The book's conversion table is not entered yet: the raw value is shown as is, so it is provisional.",
+  "POLARIS.Unite.toursCombat": "rounds"
 }

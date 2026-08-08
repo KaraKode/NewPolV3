@@ -56,8 +56,10 @@ export class PolarisActor extends Actor {
       donnees.aptitudes[cle] = attribut.aptitude;
     }
 
-    for (const [cle, valeur] of Object.entries(this.system.secondaires ?? {})) {
-      donnees[cle] = valeur;
+    // Les secondaires sont exposés par leur TOTAL, bonus compris : c'est la
+    // valeur qui compte en jeu, et celle dont dépend la formule d'initiative.
+    for (const [cle, secondaire] of Object.entries(this.system.secondaires ?? {})) {
+      donnees[cle] = secondaire.total ?? secondaire.valeur ?? 0;
     }
     return donnees;
   }

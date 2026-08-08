@@ -377,11 +377,45 @@
   color: var(--pol-texte-doux);
 }
 
+/* Trois cases alignées à droite : valeur calculée, bonus saisi, total. */
+.polaris .polaris-secondaire-champs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
 .polaris .polaris-secondaire-valeur {
-  width: 3.25rem;
+  width: 2.4rem;
   flex: 0 0 auto;
   text-align: center;
   font-weight: 700;
+}
+
+.polaris .polaris-secondaire-bonus {
+  width: 2.4rem;
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--pol-texte-doux);
+}
+
+/* Le total est la seule valeur qui compte en jeu : il est mis en avant. */
+.polaris .polaris-secondaire-total {
+  min-width: 2.4rem;
+  flex: 0 0 auto;
+  padding: 0.1rem 0.3rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pol-accent);
+  background: var(--pol-abysse);
+  border-radius: 4px;
+}
+
+.polaris .polaris-secondaire-alerte {
+  margin-left: 0.25rem;
+  color: var(--pol-critique);
 }
 
 /* Un secondaire dérivé se distingue du saisi : sa valeur n'est pas un champ. */
@@ -1192,6 +1226,13 @@
 /* Détail de la bourse de points : attributs + type génétique. */
 .polaris-creation .polaris-creation-detail-bourse {
   font-size: 0.72rem;
+  font-style: italic;
+  color: var(--pol-texte-doux);
+}
+
+/* Unité d'un secondaire — seul le Souffle en a une (des tours de combat). */
+.polaris .polaris-secondaire-unite {
+  font-size: 0.68rem;
   font-style: italic;
   color: var(--pol-texte-doux);
 }

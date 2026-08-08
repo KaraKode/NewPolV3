@@ -287,5 +287,9 @@
   "POLARIS.Creation.coutType": "Coût du type génétique",
   "POLARIS.Creation.Avertissement.repartitionManquante": "La répartition automatique de cet archétype n’est pas encore renseignée dans la configuration : les niveaux restent tels quels, à répartir à la main.",
   "POLARIS.Creation.Avertissement.coutTypeInconnu": "Le coût en points de création de ce type génétique n’est pas encore renseigné : il est compté pour zéro, le total affiché est donc optimiste.",
-  "POLARIS.Reglage.ambiance.choix": "{ton} — Chance {chance}, {points} points"
+  "POLARIS.Reglage.ambiance.choix": "{ton} — Chance {chance}, {points} points",
+  "POLARIS.Infobulle.bonusSecondaire": "Bonus ou pénalité, toujours ajouté à la valeur calculée.",
+  "POLARIS.Infobulle.totalSecondaire": "Valeur effective, bonus compris. C’est elle qui compte en jeu.",
+  "POLARIS.Infobulle.tableManquante": "La table de conversion du livre n’est pas encore renseignée : la valeur brute est affichée telle quelle, elle est donc provisoire.",
+  "POLARIS.Unite.toursCombat": "tours"
 }

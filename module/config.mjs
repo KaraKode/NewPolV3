@@ -265,17 +265,93 @@ POLARIS.competencesSpeciales = () =>
  * suivent PAS `tableAptitudeNaturelle`, et ne se suivent pas non plus entre
  * elles. Confondre ces tables fausserait silencieusement toute la fiche.
  *
- * ⚠️ À VÉRIFIER / VIDE — ces trois tables attendent les données du livre.
- * Tant qu'une table vaut `null`, la valeur brute de la formule est utilisée
- * telle quelle et la fiche le signale.
+ * Format d'une table :
+ *   {
+ *     tranches: [{ min, max, valeur }, …],
+ *     // Prolongement au-delà de la dernière tranche, quand le livre énonce une
+ *     // règle plutôt qu'une liste (« +1 tous les 2 niveaux »).
+ *     extrapolation: { min, valeur, pas, parNiveaux } | null
+ *   }
  *
- * Format attendu, identique à `tableAptitudeNaturelle` :
- *   [{ min: 3, max: 5, valeur: -2 }, …]
+ * Une table à `null` n'est pas encore renseignée : la valeur brute passe alors
+ * telle quelle et la fiche le signale.
  */
 POLARIS.tablesConversion = {
-  resistancesNaturelles: null,
-  resistanceDommages: null,
-  modifDommages: null
+  /**
+   * Résistances naturelles — poison, maladie, radiations et drogues.
+   * Source : livre de base, transmis par l'auteur du système.
+   *
+   * Noter le sens : plus l'attribut est élevé, plus la valeur est BASSE. Un
+   * personnage robuste tend vers le négatif, un personnage fragile vers +6.
+   */
+  resistancesNaturelles: {
+    tranches: [
+      { min: 1,  max: 2,  valeur: 6 },
+      { min: 3,  max: 4,  valeur: 4 },
+      { min: 5,  max: 6,  valeur: 2 },
+      { min: 7,  max: 8,  valeur: 1 },
+      { min: 9,  max: 11, valeur: 0 },
+      { min: 12, max: 13, valeur: -1 },
+      { min: 14, max: 15, valeur: -2 },
+      { min: 16, max: 17, valeur: -3 },
+      { min: 18, max: 19, valeur: -4 },
+      { min: 20, max: 21, valeur: -5 }
+    ],
+    // « 22 et au-delà : -1 tous les 2 niveaux », donc 22-23 → -6, 24-25 → -7…
+    extrapolation: { min: 22, valeur: -6, pas: -1, parNiveaux: 2 }
+  },
+
+  /**
+   * Résistance aux dommages, lue sur la SOMME de la Force et de la Constitution.
+   * Source : livre de base, transmis par l'auteur du système.
+   *
+   * ⚠️ CORRECTION SUPPOSÉE — la source donnait « -25 = -1 » sans borne basse.
+   * Toutes les tranches de cette table faisant exactement quatre niveaux, elle
+   * est lue 22-25. À confirmer.
+   */
+  resistanceDommages: {
+    tranches: [
+      // La table démarre à 2 : c'est le minimum d'une somme de deux attributs.
+      { min: 2,  max: 5,  valeur: 6 },
+      { min: 6,  max: 9,  valeur: 4 },
+      { min: 10, max: 13, valeur: 2 },
+      { min: 14, max: 17, valeur: 1 },
+      { min: 18, max: 21, valeur: 0 },
+      { min: 22, max: 25, valeur: -1 },
+      { min: 26, max: 29, valeur: -2 },
+      { min: 30, max: 33, valeur: -3 },
+      { min: 34, max: 37, valeur: -4 },
+      { min: 38, max: 41, valeur: -5 }
+    ],
+    // « 42 et au-delà : -1 tous les 4 niveaux », donc 42-45 → -6, 46-49 → -7…
+    extrapolation: { min: 42, valeur: -6, pas: -1, parNiveaux: 4 }
+  },
+
+  /**
+   * Modificateur de dommages au contact, lu sur la FORCE.
+   * Source : livre de base, transmis par l'auteur du système.
+   *
+   * Les deux premières tranches avaient été mal transcrites (« 1-2 = -1,
+   * 3-4 = -4 », non monotone) puis rectifiées par l'auteur en -6 et -4. La table
+   * suit ainsi la même forme que les résistances, au signe près : les extrêmes
+   * s'écartent par paliers de 2 avant de progresser de 1 en 1.
+   */
+  modifDommages: {
+    tranches: [
+      { min: 1,  max: 2,  valeur: -6 },
+      { min: 3,  max: 4,  valeur: -4 },
+      { min: 5,  max: 6,  valeur: -2 },
+      { min: 7,  max: 8,  valeur: -1 },
+      { min: 9,  max: 11, valeur: 0 },
+      { min: 12, max: 13, valeur: 1 },
+      { min: 14, max: 15, valeur: 2 },
+      { min: 16, max: 17, valeur: 3 },
+      { min: 18, max: 19, valeur: 4 },
+      { min: 20, max: 21, valeur: 5 }
+    ],
+    // « 22 et au-delà : +1 tous les 2 niveaux », donc 22-23 → +6, 24-25 → +7…
+    extrapolation: { min: 22, valeur: 6, pas: 1, parNiveaux: 2 }
+  }
 };
 
 /**
@@ -288,12 +364,22 @@ POLARIS.tablesConversion = {
 POLARIS.convertir = function (cleTable, valeur) {
   const table = POLARIS.tablesConversion[cleTable];
   const v = Number(valeur) || 0;
-  if (!table?.length) return v;
 
-  const tranche = table.find((t) => v >= t.min && v <= t.max);
+  const tranches = Array.isArray(table) ? table : table?.tranches;
+  if (!tranches?.length) return v;
+
+  const tranche = tranches.find((t) => v >= t.min && v <= t.max);
   if (tranche) return tranche.valeur;
 
-  return v < table[0].min ? table[0].valeur : table.at(-1).valeur;
+  // Au-delà de la dernière tranche, le livre peut énoncer une progression
+  // continue plutôt que de poursuivre la liste.
+  const extra = Array.isArray(table) ? null : table.extrapolation;
+  if (extra && v >= extra.min) {
+    return extra.valeur + Math.floor((v - extra.min) / extra.parNiveaux) * extra.pas;
+  }
+
+  // Hors table et sans règle de prolongement : on borne sur l'extrémité.
+  return v < tranches[0].min ? tranches[0].valeur : tranches.at(-1).valeur;
 };
 
 /**
@@ -314,30 +400,45 @@ POLARIS.attributsSecondaires = {
   seuilEtourdissement: {
     label: "POLARIS.Secondaire.seuilEtourdissement",
     groupe: "choc",
-    formule: null,
+    // Source : livre de base — « (FOR+CON+VOL)/3 ».
+    formule: (a) => Math.floor((a.for + a.con + a.vol) / 3),
     table: null
   },
   seuilInconscience: {
     label: "POLARIS.Secondaire.seuilInconscience",
     groupe: "choc",
-    formule: null,
+    /**
+     * Source : livre de base — « seuil d'étourdissement (modifié par
+     * d'éventuels bonus ou pénalités) + 10 ».
+     *
+     * Le calcul part donc du TOTAL du seuil d'étourdissement, bonus compris, et
+     * non de sa valeur brute : un personnage dont l'étourdissement est amélioré
+     * voit son inconscience reculer d'autant. D'où le second argument, qui
+     * expose les secondaires déjà calculés — et l'ordre de déclaration, qui doit
+     * placer l'étourdissement avant l'inconscience.
+     */
+    formule: (a, s) => s.seuilEtourdissement + POLARIS.ecartInconscience,
     table: null
   },
   modifDommages: {
     label: "POLARIS.Secondaire.modifDommages",
-    formule: null,
-    // Table distincte, signalée par l'auteur du système.
+    // Lu directement sur la Force, via sa propre table.
+    // Source : livre de base.
+    formule: (a) => a.for,
     table: "modifDommages"
   },
   reaction: {
     label: "POLARIS.Secondaire.reaction",
-    // Source : feuille officielle — « Réaction (ADA+PER)/2 ».
+    // Source : feuille officielle et livre de base — « Réaction (ADA+PER)/2 ».
     formule: (a) => Math.floor((a.ada + a.per) / 2),
     table: null
   },
   resistanceDommages: {
     label: "POLARIS.Secondaire.resistanceDommages",
-    formule: null,
+    // Source : livre de base — dépend de la Force ET de la Constitution.
+    // ⚠️ La SOMME est retenue : les tranches de la table montent jusqu'à 42 et
+    // au-delà, ce qu'une moyenne de deux attributs ne pourrait jamais atteindre.
+    formule: (a) => a.for + a.con,
     table: "resistanceDommages"
   },
   resistanceDrogue: {
@@ -356,16 +457,23 @@ POLARIS.attributsSecondaires = {
   },
   souffle: {
     label: "POLARIS.Secondaire.souffle",
-    // Source : feuille officielle — « Souffle (CON+VOL)/2 ».
+    // Source : feuille officielle et livre de base — « Souffle (CON+VOL)/2 ».
     formule: (a) => Math.floor((a.con + a.vol) / 2),
-    // ⚠️ À VÉRIFIER — le Souffle n'a pas été cité parmi les tables distinctes ;
-    // il est supposé brut jusqu'à confirmation.
-    table: null
+    // Confirmé sans table : le résultat est un nombre de tours, pas un
+    // modificateur. C'est le seul secondaire qui s'exprime dans une unité.
+    table: null,
+    unite: "POLARIS.Unite.toursCombat"
   }
 };
 
 /**
- * ⚠️ À VÉRIFIER — l'arrondi des formules en /2 n'est pas précisé sur la feuille.
+ * Écart entre le seuil d'étourdissement et celui d'inconscience.
+ * Source : livre de base — « seuil d'étourdissement + 10 ».
+ */
+POLARIS.ecartInconscience = 10;
+
+/**
+ * ⚠️ À VÉRIFIER — l'arrondi des formules en /2 et /3 n'est précisé nulle part.
  * L'inférieur est retenu ici ; changer `Math.floor` en `Math.round` ci-dessus
  * suffit à basculer si le livre en décide autrement.
  */

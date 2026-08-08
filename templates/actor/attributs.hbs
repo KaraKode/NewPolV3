@@ -77,20 +77,48 @@
   <div class="polaris-grille-secondaires">
     {{#each system.secondairesDetail as |secondaire cle|}}
       <div class="polaris-secondaire {{#if secondaire.derive}}polaris-secondaire-derive{{/if}}">
-        <span class="polaris-secondaire-label">{{secondaire.label}}</span>
+        <span class="polaris-secondaire-label">
+          {{secondaire.label}}
+          {{#if secondaire.tableManquante}}
+            {{!-- La table de conversion du livre manque : la valeur affichée est
+                  la valeur brute, donc fausse. Mieux vaut le dire. --}}
+            <i class="fa-solid fa-triangle-exclamation polaris-secondaire-alerte"
+               data-tooltip="{{localize 'POLARIS.Infobulle.tableManquante'}}"></i>
+          {{/if}}
+        </span>
 
-        {{#if secondaire.derive}}
-          <span class="polaris-secondaire-valeur"
-                data-tooltip="{{localize 'POLARIS.Infobulle.valeurDerivee'}}">
-            {{secondaire.valeur}}
-          </span>
-        {{else}}
-          <input class="polaris-secondaire-valeur"
+        <span class="polaris-secondaire-champs">
+          {{#if secondaire.derive}}
+            <span class="polaris-secondaire-valeur"
+                  data-tooltip="{{localize 'POLARIS.Infobulle.valeurDerivee'}}">
+              {{secondaire.converti}}
+            </span>
+          {{else}}
+            <input class="polaris-secondaire-valeur"
+                   type="number"
+                   name="system.secondaires.{{cle}}.valeur"
+                   value="{{secondaire.brute}}"
+                   {{#unless @root.modifiable}}disabled{{/unless}} />
+          {{/if}}
+
+          {{!-- Bonus ou pénalité, toujours saisissable : le livre s'en sert
+                explicitement pour le seuil d'inconscience. --}}
+          <input class="polaris-secondaire-bonus"
                  type="number"
-                 name="system.secondaires.{{cle}}"
-                 value="{{secondaire.valeur}}"
+                 name="system.secondaires.{{cle}}.bonus"
+                 value="{{secondaire.bonus}}"
+                 data-tooltip="{{localize 'POLARIS.Infobulle.bonusSecondaire'}}"
                  {{#unless @root.modifiable}}disabled{{/unless}} />
-        {{/if}}
+
+          <span class="polaris-secondaire-total"
+                data-tooltip="{{localize 'POLARIS.Infobulle.totalSecondaire'}}">
+            {{secondaire.total}}
+          </span>
+
+          {{#if secondaire.unite}}
+            <span class="polaris-secondaire-unite">{{secondaire.unite}}</span>
+          {{/if}}
+        </span>
       </div>
     {{/each}}
   </div>

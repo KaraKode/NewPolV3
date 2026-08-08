@@ -33,17 +33,17 @@ Le code n'a jamais été exécuté dans Foundry. Il est vérifié par 100+ tests
 sa syntaxe est valide, ses 288 clés de traduction sont synchronisées et
 complètes — mais **aucune fiche n'a jamais été rendue à l'écran**.
 
-- [ ] Lancer Foundry, créer un personnage, ouvrir sa fiche, parcourir les cinq
+- [X] Lancer Foundry, créer un personnage, ouvrir sa fiche, parcourir les cinq
       onglets
-- [ ] Vérifier le rendu du partiel dynamique de l'assistant
+- [X] Vérifier le rendu du partiel dynamique de l'assistant
       (`{{> (lookup . "templateEtape")}}` dans
       [templates/apps/creation/wizard.hbs](templates/apps/creation/wizard.hbs)) —
       **c'est le point le plus fragile de tout le système** : si les étapes
       s'affichent vides, c'est là qu'il faut regarder
-- [ ] Vérifier que le bouton « Créer un personnage » apparaît bien dans l'onglet
+- [X] Vérifier que le bouton « Créer un personnage » apparaît bien dans l'onglet
       Acteurs (le sélecteur `.header-actions` de la barre latérale V13 est une
       supposition, voir [module/polaris.mjs](module/polaris.mjs))
-- [ ] Créer un personnage de bout en bout par l'assistant et contrôler les
+- [X] Créer un personnage de bout en bout par l'assistant et contrôler les
       données écrites
 
 Tant que ce point n'est pas franchi, tout ce qui suit s'ajoute à une base non
@@ -284,8 +284,12 @@ complète, et non un simple jet de compétence.
 - [ ] ❌ Consommation des munitions
 - [ ] 📖 Effet de la force minimale de l'arme quand elle n'est pas atteinte
 - [ ] 📖 Allonge : effet mécanique
-- [ ] 📖 Modificateur de dommages au contact — formule manquante, **et table de
-      conversion propre**
+- [x] ✅ Modificateur de dommages au contact — table lue sur la Force, de −4 à
+      +5 puis +1 tous les 2 niveaux au-delà de 21. Reste à **l'appliquer** aux
+      dégâts, ce que rien ne fait encore (voir la boucle manquante ci-dessus).
+- [ ] ⚠️ **Deux tranches du modificateur de dommages sont une correction
+      supposée.** La source donnait « 1-2 = −1, 3-4 = −4 », ce qui n'est pas
+      monotone ; elles sont lues −4 et −3. À confirmer dans le livre.
 - [ ] ❌ Manœuvres de combat (charge, viser, tir de couverture…) 📖
 
 ---
@@ -318,14 +322,24 @@ fatales. Voir [module/data/base-actor.mjs](module/data/base-actor.mjs).
 - [ ] ❌ Le malus n'existe pas comme Active Effect : il est ajouté à la main dans
       `calculerChances`, donc invisible pour tout module tiers
 - [ ] 📖 Séquelles : le champ de notes existe, la mécanique non
-- [ ] 📖 Formules des seuils d'étourdissement et d'inconscience
-- [ ] 📖 **Table de conversion de la résistance aux dommages** — signalée comme
-      distincte, encore vide
-- [ ] 📖 **Table de conversion des résistances naturelles** — idem
+- [x] ✅ Formules des seuils d'étourdissement et d'inconscience —
+      `(FOR+CON+VOL)/3`, puis `+10` sur le seuil **modifié**
+- [x] ✅ **Table de conversion de la résistance aux dommages** — lue sur
+      `FOR + CON`, de +6 à −5 puis −1 tous les 4 niveaux au-delà de 41
+- [x] ✅ **Table de conversion des résistances naturelles** — de +6 à −5 puis
+      −1 tous les 2 niveaux au-delà de 21. Poison, maladie et radiations lisent
+      la Constitution seule ; les drogues `(CON+VOL)/2`
+- [ ] ⚠️ **`FOR + CON` est une lecture, pas une certitude.** La source dit « la
+      Force et la Constitution » sans préciser l'opération ; la somme est
+      retenue parce que les tranches montent jusqu'à 42, hors d'atteinte d'une
+      moyenne.
+- [ ] ⚠️ La tranche `22-25` de la résistance aux dommages est une reconstitution
+      (la source donnait « -25 » sans borne basse, et toutes les tranches font
+      quatre niveaux)
 
-Ces trois tables de conversion vides sont importantes : tant qu'elles manquent,
-la valeur brute passe telle quelle et **les résistances affichées sont fausses**.
-Le code le signale par `tableManquante`.
+**Les huit attributs secondaires ont désormais tous leur formule et leur table.**
+Le mécanisme `tableManquante` reste en place pour signaler toute future table
+non renseignée.
 
 ---
 

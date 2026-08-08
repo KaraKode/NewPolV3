@@ -263,10 +263,88 @@ verifier("Drogue (CON+VOL)/2", POLARIS.attributsSecondaires.resistanceDrogue.for
 verifier("Souffle (CON+VOL)/2", POLARIS.attributsSecondaires.souffle.formule(niveaux), 11);
 verifier("Maladie, poison & radiation (CON)", POLARIS.attributsSecondaires.resistanceMaladie.formule(niveaux), 11);
 
-// Les secondaires sans formule sur la feuille restent en saisie manuelle.
-for (const cle of ["seuilEtourdissement", "seuilInconscience", "modifDommages", "resistanceDommages"]) {
-  verifier(`« ${cle} » sans formule, saisi à la main`, POLARIS.attributsSecondaires[cle].formule, null);
+// Seuils de choc. L'inconscience se déduit de l'étourdissement, pas des
+// attributs : elle reçoit les totaux déjà calculés en second argument.
+const secondaire = (cle, totaux = {}) => POLARIS.attributsSecondaires[cle].formule(niveaux, totaux);
+
+// (FOR 10 + CON 11 + VOL 12) / 3 = 11
+verifier("Seuil d'étourdissement (FOR+CON+VOL)/3", secondaire("seuilEtourdissement"), 11);
+verifier(
+  "Seuil d'inconscience = étourdissement + 10",
+  secondaire("seuilInconscience", { seuilEtourdissement: 11 }),
+  21
+);
+
+// Le point important : l'inconscience suit l'étourdissement MODIFIÉ. Un bonus
+// de +3 sur l'étourdissement doit repousser l'inconscience d'autant.
+verifier(
+  "un bonus sur l'étourdissement repousse l'inconscience",
+  secondaire("seuilInconscience", { seuilEtourdissement: 14 }),
+  24
+);
+
+// L'étourdissement doit être déclaré AVANT l'inconscience, sans quoi cette
+// dernière lirait une valeur encore absente.
+const ordre = Object.keys(POLARIS.attributsSecondaires);
+verifier(
+  "l'étourdissement est calculé avant l'inconscience",
+  ordre.indexOf("seuilEtourdissement") < ordre.indexOf("seuilInconscience"),
+  true
+);
+
+// Le modificateur de dommages lit la Force brute, sa table fait le reste.
+verifier("modif. de dommages : formule = Force brute", secondaire("modifDommages"), niveaux.for);
+
+// Les huit secondaires ont désormais tous leur formule : aucun ne reste en
+// saisie manuelle. Ce test signalera toute régression sur ce point.
+verifier(
+  "les huit secondaires ont une formule",
+  Object.values(POLARIS.attributsSecondaires).every((d) => typeof d.formule === "function"),
+  true
+);
+
+/* -------------------------------------------- */
+/*  Modificateur de dommages au contact         */
+/* -------------------------------------------- */
+
+console.log("\n— Modificateur de dommages (contact) —");
+
+const modDom = (force) => POLARIS.convertir("modifDommages", force);
+
+// Transcription de la table, bornes de chaque tranche. Les deux premières
+// valeurs ont été rectifiées par l'auteur après une transcription fautive :
+// la table s'écarte par paliers de 2 aux extrêmes, comme les résistances.
+const dommages = [
+  [1, -6], [2, -6],
+  [3, -4], [4, -4],
+  [5, -2], [6, -2],
+  [7, -1], [8, -1],
+  [9, 0], [11, 0],
+  [12, 1], [13, 1],
+  [14, 2], [15, 2],
+  [16, 3], [17, 3],
+  [18, 4], [19, 4],
+  [20, 5], [21, 5]
+];
+
+for (const [force, attendu] of dommages) {
+  verifier(`Force ${force} → ${attendu >= 0 ? "+" : ""}${attendu}`, modDom(force), attendu);
 }
+
+// « 22 et au-delà : +1 tous les 2 niveaux ».
+verifier("Force 22 → +6", modDom(22), 6);
+verifier("Force 23 → +6", modDom(23), 6);
+verifier("Force 24 → +7", modDom(24), 7);
+verifier("Force 25 → +7", modDom(25), 7);
+verifier("Force 30 → +10", modDom(30), 10);
+
+// La table doit être monotone : c'est ce qui a révélé la coquille de la source
+// (« 1-2 = -1, 3-4 = -4 » aurait rendu un Force 3 plus faible qu'un Force 1).
+let monotoneDommages = true;
+for (let f = 2; f <= 40; f++) {
+  if (modDom(f) < modDom(f - 1)) monotoneDommages = false;
+}
+verifier("le modificateur ne décroît jamais quand la Force monte", monotoneDommages, true);
 
 // L'initiative démarre à la Réaction, elle ne se lance pas.
 verifier("l'initiative démarre à la Réaction", POLARIS.initiative.secondaireDeDepart, "reaction");
@@ -304,6 +382,109 @@ verifier("le coût marginal ne redescend jamais", croissant, true);
 
 // Descendre sous le niveau de départ ne rend pas de points.
 verifier("un niveau inférieur au départ ne coûte rien", cout(5), 0);
+
+/* -------------------------------------------- */
+/*  Résistances naturelles                      */
+/* -------------------------------------------- */
+
+console.log("\n— Résistances naturelles —");
+
+const resNat = (v) => POLARIS.convertir("resistancesNaturelles", v);
+
+const naturelles = [
+  [1, 6], [2, 6],
+  [3, 4], [4, 4],
+  [5, 2], [6, 2],
+  [7, 1], [8, 1],
+  [9, 0], [11, 0],
+  [12, -1], [13, -1],
+  [14, -2], [15, -2],
+  [16, -3], [17, -3],
+  [18, -4], [19, -4],
+  [20, -5], [21, -5]
+];
+
+for (const [valeur, attendu] of naturelles) {
+  verifier(`niveau ${valeur} → ${attendu}`, resNat(valeur), attendu);
+}
+
+// « 22 et au-delà : -1 tous les 2 niveaux ».
+verifier("niveau 22 → -6", resNat(22), -6);
+verifier("niveau 23 → -6", resNat(23), -6);
+verifier("niveau 24 → -7", resNat(24), -7);
+verifier("niveau 40 → -15", resNat(40), -15);
+
+// Sens de la table : plus l'attribut monte, plus la valeur baisse. C'est
+// l'inverse du modificateur de dommages, d'où ce test qui fige la direction.
+let decroissante = true;
+for (let v = 2; v <= 40; v++) if (resNat(v) > resNat(v - 1)) decroissante = false;
+verifier("la résistance naturelle décroît quand l'attribut monte", decroissante, true);
+
+// Les deux résistances naturelles partagent la table mais pas la formule :
+// maladie/poison/radiations lit la Constitution seule, les drogues (CON+VOL)/2.
+verifier("maladie, poison, radiations = Constitution", secondaire("resistanceMaladie"), niveaux.con);
+verifier("drogues = (CON+VOL)/2", secondaire("resistanceDrogue"), 11);
+
+/* -------------------------------------------- */
+/*  Résistance aux dommages                     */
+/* -------------------------------------------- */
+
+console.log("\n— Résistance aux dommages —");
+
+const resDom = (v) => POLARIS.convertir("resistanceDommages", v);
+
+// Table à tranches de quatre niveaux, lue sur FOR + CON.
+const dommagesRes = [
+  [2, 6], [5, 6],
+  [6, 4], [9, 4],
+  [10, 2], [13, 2],
+  [14, 1], [17, 1],
+  [18, 0], [21, 0],
+  [22, -1], [25, -1],
+  [26, -2], [29, -2],
+  [30, -3], [33, -3],
+  [34, -4], [37, -4],
+  [38, -5], [41, -5]
+];
+
+for (const [somme, attendu] of dommagesRes) {
+  verifier(`FOR+CON ${somme} → ${attendu}`, resDom(somme), attendu);
+}
+
+// « 42 et au-delà : -1 tous les 4 niveaux ».
+verifier("FOR+CON 42 → -6", resDom(42), -6);
+verifier("FOR+CON 45 → -6", resDom(45), -6);
+verifier("FOR+CON 46 → -7", resDom(46), -7);
+verifier("FOR+CON 50 → -8", resDom(50), -8);
+
+// Toutes les tranches font exactement quatre niveaux — c'est ce qui a permis de
+// lire « -25 » comme « 22-25 » dans la source.
+const tranchesResDom = POLARIS.tablesConversion.resistanceDommages.tranches;
+verifier(
+  "toutes les tranches couvrent quatre niveaux",
+  tranchesResDom.every((t) => t.max - t.min === 3),
+  true
+);
+verifier("aucun trou entre les tranches", tranchesResDom.every((t, i) => i === 0 || t.min === tranchesResDom[i - 1].max + 1), true);
+
+// La formule somme les deux attributs : une moyenne ne pourrait jamais
+// atteindre les tranches hautes de la table.
+verifier("résistance aux dommages = FOR + CON", secondaire("resistanceDommages"), niveaux.for + niveaux.con);
+
+/* -------------------------------------------- */
+/*  Souffle                                     */
+/* -------------------------------------------- */
+
+console.log("\n— Souffle —");
+
+verifier("Souffle (CON+VOL)/2", secondaire("souffle"), 11);
+// Confirmé sans conversion : c'est un nombre de tours, pas un modificateur.
+verifier("le Souffle ne passe par aucune table", POLARIS.attributsSecondaires.souffle.table, null);
+verifier(
+  "le Souffle s'exprime en tours de combat",
+  POLARIS.attributsSecondaires.souffle.unite,
+  "POLARIS.Unite.toursCombat"
+);
 
 /* -------------------------------------------- */
 /*  Ambiance et Chance                          */

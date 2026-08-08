@@ -37,16 +37,19 @@ export class PolarisActorBase extends foundry.abstract.TypeDataModel {
       }, {})
     );
 
-    // Attributs secondaires. Ceux dont le livre donne la formule sont recalculés
-    // à chaque préparation ; les autres restent en saisie manuelle, d'où un
-    // champ stocké pour chacun.
+    // Attributs secondaires. Chacun porte deux champs :
+    //   `valeur` — saisie manuelle, utilisée seulement quand le livre ne donne
+    //              pas de formule ;
+    //   `bonus`  — ajustement libre, TOUJOURS ajouté, formule ou non.
+    //
+    // Le bonus n'est pas un ornement : le livre calcule le seuil d'inconscience
+    // à partir du seuil d'étourdissement « modifié par d'éventuels bonus ou
+    // pénalités ». Sans champ dédié, cette règle serait inapplicable.
     schema.secondaires = new fields.SchemaField(
       Object.keys(POLARIS.attributsSecondaires).reduce((acc, cle) => {
-        acc[cle] = new fields.NumberField({
-          required: true,
-          nullable: false,
-          integer: true,
-          initial: 0
+        acc[cle] = new fields.SchemaField({
+          valeur: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
+          bonus: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 })
         });
         return acc;
       }, {})
@@ -133,11 +136,17 @@ export class PolarisActorBase extends foundry.abstract.TypeDataModel {
   }
 
   /**
-   * Attributs secondaires. Ceux qui ont une formule écrasent la valeur stockée ;
-   * les autres la conservent telle que saisie.
+   * Attributs secondaires.
    *
-   * Les formules travaillent sur les niveaux actuels d'attributs, comme les
-   * indique la feuille officielle — « Réaction (ADA+PER)/2 », etc.
+   * Trois étages successifs, dans cet ordre :
+   *   1. la formule du livre (ou la valeur saisie, s'il n'en donne pas) ;
+   *   2. la table de conversion propre à ce secondaire, s'il en a une ;
+   *   3. le bonus ou la pénalité saisi sur la fiche.
+   *
+   * Les formules reçoivent les niveaux actuels d'attributs, et les TOTAUX des
+   * secondaires déjà calculés : le seuil d'inconscience se déduit du seuil
+   * d'étourdissement bonus compris. L'ordre de déclaration dans la config fait
+   * donc foi — un secondaire ne peut dépendre que de ceux déclarés avant lui.
    */
   #preparerSecondaires() {
     const niveaux = Object.fromEntries(
@@ -145,29 +154,45 @@ export class PolarisActorBase extends foundry.abstract.TypeDataModel {
     );
 
     const calcules = {};
+    /** Totaux déjà connus, offerts aux formules suivantes. */
+    const totaux = {};
+
     for (const [cle, definition] of Object.entries(POLARIS.attributsSecondaires)) {
-      const brute = definition.formule ? definition.formule(niveaux) : this.secondaires[cle];
+      const stocke = this.secondaires[cle];
+      const bonus = stocke.bonus ?? 0;
+
+      const brute = definition.formule ? definition.formule(niveaux, totaux) : stocke.valeur;
 
       // Chaque secondaire a sa propre table de conversion — les résistances et
       // le modificateur de dommages ne suivent PAS celle des aptitudes
       // naturelles. Sans table renseignée, la valeur brute passe telle quelle.
-      const valeur = definition.table ? POLARIS.convertir(definition.table, brute) : brute;
+      const converti = definition.table ? POLARIS.convertir(definition.table, brute) : brute;
       const tableManquante = Boolean(definition.table) && !POLARIS.tablesConversion[definition.table];
 
+      const total = converti + bonus;
+      totaux[cle] = total;
+
       calcules[cle] = {
-        valeur,
+        cle,
         brute,
+        converti,
+        bonus,
+        total,
         derive: Boolean(definition.formule),
         // Signale à la fiche que la valeur affichée n'est pas encore convertie.
         tableManquante,
         groupe: definition.groupe ?? null,
-        label: game.i18n.localize(definition.label)
+        label: game.i18n.localize(definition.label),
+        // Seul le Souffle s'exprime dans une unité (des tours de combat) ; les
+        // autres secondaires sont des modificateurs sans dimension.
+        unite: definition.unite ? game.i18n.localize(definition.unite) : ""
       };
-      this.secondaires[cle] = valeur;
+
+      // Le total est reporté sur la donnée elle-même : les formules de jet et
+      // l'initiative lisent `system.secondaires.<cle>.total`.
+      stocke.total = total;
     }
 
-    // Table parallèle : `secondaires` reste une table de nombres bruts, utilisable
-    // dans les formules de jet, tandis que `secondairesDetail` sert l'affichage.
     this.secondairesDetail = calcules;
   }
 
