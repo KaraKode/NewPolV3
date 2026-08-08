@@ -19,6 +19,57 @@
 }
 
 /* -------------------------------------------- */
+/*  Champs de saisie                            */
+/* -------------------------------------------- */
+
+/* Sans ces règles, les champs gardent l'habillage clair par défaut de Foundry,
+   qui jure avec le thème abyssal. On vise les types explicitement plutôt que
+   `input` tout court, pour ne pas déshabiller les cases à cocher. */
+.polaris input[type="text"],
+.polaris input[type="number"],
+.polaris input[type="search"],
+.polaris select,
+.polaris textarea {
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 4px;
+  color: var(--pol-texte);
+  padding: 0.2rem 0.4rem;
+  font-family: inherit;
+}
+
+.polaris input[type="text"]:focus,
+.polaris input[type="number"]:focus,
+.polaris select:focus,
+.polaris textarea:focus {
+  border-color: var(--pol-accent);
+  box-shadow: 0 0 6px rgba(79, 209, 224, 0.35);
+  outline: none;
+}
+
+.polaris input::placeholder {
+  color: var(--pol-texte-doux);
+  opacity: 0.6;
+}
+
+.polaris input:disabled,
+.polaris select:disabled,
+.polaris textarea:disabled {
+  opacity: 0.55;
+}
+
+/* Les listes déroulantes rendent leurs options avec les couleurs du système
+   d'exploitation : il faut les repeindre explicitement. */
+.polaris select option {
+  background: var(--pol-fond);
+  color: var(--pol-texte);
+}
+
+.polaris input[type="checkbox"] {
+  accent-color: var(--pol-accent-sombre);
+}
+
+/* -------------------------------------------- */
 /*  Onglets                                     */
 /* -------------------------------------------- */
 
@@ -625,14 +676,11 @@
   border-radius: 5px;
 }
 
+/* Complète l'habillage commun des champs, plus haut, de ce qui est propre aux
+   zones de texte. */
 .polaris textarea {
   width: 100%;
-  background: var(--pol-abysse);
-  border: 1px solid var(--pol-bordure);
-  border-radius: 4px;
-  color: var(--pol-texte);
   padding: 0.4rem;
-  font-family: inherit;
   resize: vertical;
 }
 
@@ -820,6 +868,27 @@
 /*  Assistant de création                       */
 /* -------------------------------------------- */
 
+/* Cadre unique exigé par ApplicationV2 : il porte la colonne flex, seul l'espace
+   central défilant. `min-height: 0` est indispensable — sans lui, un enfant flex
+   refuse de rétrécir sous sa hauteur de contenu et c'est la fenêtre entière qui
+   défile au lieu du corps. */
+.polaris-creation .polaris-creation-cadre {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+}
+
+/* La zone de contenu de la fenêtre doit elle aussi laisser le cadre s'étirer. */
+.polaris-creation .window-content,
+.polaris-creation .polaris-contenu {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .polaris-creation .polaris-creation-entete {
   display: flex;
   align-items: flex-end;
@@ -875,15 +944,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.45rem 0.3rem;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  padding: 0.5rem 0.3rem;
   background: transparent;
   border: 1px solid var(--pol-bordure);
   border-radius: 5px;
   color: var(--pol-texte-doux);
   font-size: 0.68rem;
-  line-height: 1.2;
+  line-height: 1.25;
   cursor: pointer;
+
+  /* Foundry impose une hauteur fixe à tout `button` : sans cette libération,
+     notre disposition sur deux lignes déborde et le numéro chevauche le
+     libellé. Idem pour `white-space`, qui empêcherait le libellé de passer à
+     la ligne dans une colonne étroite. */
+  height: auto;
+  min-height: 3.6rem;
+  white-space: normal;
+  text-align: center;
 }
 
 .polaris-creation .polaris-creation-jalon:disabled {
@@ -895,11 +974,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* `flex: 0 0 auto` empêche la pastille d'être écrasée quand le libellé
+     passe sur deux lignes. */
+  flex: 0 0 auto;
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
   border: 1px solid currentColor;
+  font-size: 0.72rem;
   font-weight: 700;
+}
+
+.polaris-creation .polaris-jalon-label {
+  display: block;
 }
 
 .polaris-creation .polaris-jalon-actif {
@@ -915,6 +1002,7 @@
 
 .polaris-creation .polaris-creation-corps {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 0.3rem;
 }

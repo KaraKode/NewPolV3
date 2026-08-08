@@ -1,5 +1,11 @@
 {{!-- Coquille de l'assistant : en-tête permanent, barre de progression,
-      contenu de l'étape courante, puis navigation. --}}
+      contenu de l'étape courante, puis navigation.
+
+      Le cadre englobant n'est pas décoratif : ApplicationV2 exige qu'un « part »
+      rende UN SEUL élément racine, sans quoi le rendu échoue avec
+      « must render a single HTML element ». C'est aussi lui qui porte la
+      colonne flex permettant au corps de défiler seul. --}}
+<div class="polaris-creation-cadre">
 
 <header class="polaris-creation-entete">
   <label class="polaris-creation-nom">
@@ -71,3 +77,5 @@
     </button>
   {{/if}}
 </footer>
+
+</div>

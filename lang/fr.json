@@ -286,5 +286,6 @@
   "POLARIS.Creation.sansArchetype": "Sans archétype — répartition libre",
   "POLARIS.Creation.coutType": "Coût du type génétique",
   "POLARIS.Creation.Avertissement.repartitionManquante": "La répartition automatique de cet archétype n’est pas encore renseignée dans la configuration : les niveaux restent tels quels, à répartir à la main.",
-  "POLARIS.Creation.Avertissement.coutTypeInconnu": "Le coût en points de création de ce type génétique n’est pas encore renseigné : il est compté pour zéro, le total affiché est donc optimiste."
+  "POLARIS.Creation.Avertissement.coutTypeInconnu": "Le coût en points de création de ce type génétique n’est pas encore renseigné : il est compté pour zéro, le total affiché est donc optimiste.",
+  "POLARIS.Reglage.ambiance.choix": "{ton} — Chance {chance}, {points} points"
 }

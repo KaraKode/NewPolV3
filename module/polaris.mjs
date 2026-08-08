@@ -55,7 +55,6 @@ Hooks.once("init", function () {
   // Source : feuille officielle — « INITIATIVE / Niveau de départ = Réaction ».
   CONFIG.Combat.initiative = { formula: `@${POLARIS.initiative.secondaireDeDepart}`, decimals: 0 };
 
-  enregistrerReglages();
   enregistrerFiches();
   enregistrerHelpers();
 
@@ -69,8 +68,14 @@ Hooks.once("init", function () {
 /**
  * L'ambiance est un réglage de monde et non de client : elle fixe la Chance de
  * tous les personnages, elle ne peut donc pas varier d'un joueur à l'autre.
+ *
+ * L'enregistrement a lieu sur `i18nInit` et NON sur `init` : les libellés des
+ * choix sont composés ici même, en y insérant les chiffres de la config, et
+ * `game.i18n` n'est pas encore chargé au moment du `init` — les intitulés y
+ * resteraient à l'état de clés brutes. Foundry traduit bien `name` et `hint`
+ * tout seul à l'affichage, mais pas le contenu de `choices`.
  */
-function enregistrerReglages() {
+Hooks.once("i18nInit", function () {
   game.settings.register(POLARIS.ID, POLARIS.REGLAGE_AMBIANCE, {
     name: "POLARIS.Reglage.ambiance.nom",
     hint: "POLARIS.Reglage.ambiance.aide",
@@ -78,14 +83,20 @@ function enregistrerReglages() {
     config: true,
     type: String,
     default: POLARIS.ambianceParDefaut,
+    // Les chiffres viennent de la config, la phrase de la traduction : le
+    // meneur voit ce que son choix implique sans avoir à ouvrir le livre.
     choices: Object.fromEntries(
       Object.entries(POLARIS.ambiances).map(([cle, def]) => [
         cle,
-        `${game.i18n.localize(def.label)} — ${game.i18n.localize("POLARIS.Attribut.chc.long")} ${def.chance}`
+        game.i18n.format("POLARIS.Reglage.ambiance.choix", {
+          ton: game.i18n.localize(def.label),
+          chance: def.chance,
+          points: def.pointsAttributs
+        })
       ])
     )
   });
-}
+});
 
 /* -------------------------------------------- */
 /*  Enregistrement des fiches                   */
