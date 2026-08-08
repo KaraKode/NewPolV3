@@ -1,0 +1,13 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Réglages Claude Code propres à une machine (chemins absolus, permissions locales).
+# .claude/settings.json, lui, est partageable et reste versionné.
+.claude/settings.local.json
+packs/**/LOG*
+packs/**/MANIFEST*
+packs/**/*.ldb
+packs/**/CURRENT
+packs/**/LOCK

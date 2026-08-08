@@ -1,0 +1,52 @@
+<div class="polaris-carte-jet polaris-issue-{{resultat.issue}}">
+
+  <header class="polaris-carte-entete">
+    <h3>{{nomCompetence}}</h3>
+    {{#if libelleDifficulte}}
+      <span class="polaris-carte-difficulte">{{libelleDifficulte}}</span>
+    {{/if}}
+  </header>
+
+  {{!-- Décomposition des chances, pour que la table puisse vérifier le calcul.
+        Chaque attribut est donné en niveau actuel, suivi de l'aptitude naturelle
+        qui en dérive et qui seule entre dans le total. --}}
+  <div class="polaris-carte-calcul">
+    {{#each detail as |attribut|}}
+      <span class="polaris-terme">
+        {{localize attribut.label}} {{attribut.actuel}}
+        <em>({{polarisSigne attribut.aptitude}})</em>
+      </span>
+    {{/each}}
+    <span class="polaris-terme">{{localize "POLARIS.Champ.maitriseCourt"}} {{polarisSigne maitrise}}</span>
+    {{#if malusBlessure}}
+      <span class="polaris-terme polaris-terme-malus"
+            data-tooltip="{{localize 'POLARIS.Infobulle.malusBlessures'}}">
+        <i class="fa-solid fa-heart-crack"></i> {{polarisSigne malusBlessure}}
+      </span>
+    {{/if}}
+    {{#if modificateur}}
+      <span class="polaris-terme">{{localize "POLARIS.Champ.modificateur"}} {{polarisSigne modificateur}}</span>
+    {{/if}}
+  </div>
+
+  <div class="polaris-carte-resultat">
+    <div class="polaris-de">{{resultat.de}}</div>
+    <div class="polaris-cible">
+      <span class="polaris-cible-label">{{localize "POLARIS.Champ.chances"}}</span>
+      <span class="polaris-cible-valeur">{{resultat.chances}}</span>
+    </div>
+  </div>
+
+  <div class="polaris-carte-issue">{{issueLabel}}</div>
+
+  {{#if resultat.reussite}}
+    <div class="polaris-carte-marge">
+      {{localize "POLARIS.Champ.marge"}} : <strong>{{resultat.marge}}</strong>
+      {{!-- Conversion par la table des marges de la feuille officielle. --}}
+      <span class="polaris-carte-marge-mod">
+        {{localize "POLARIS.Champ.modificateurDeMarge"}} ±{{resultat.modificateurMarge}}
+      </span>
+    </div>
+  {{/if}}
+
+</div>

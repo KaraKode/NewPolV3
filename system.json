@@ -1,0 +1,49 @@
+{
+  "id": "polaris-v3",
+  "title": "Polaris V3 — Le Jeu de Rôle des Profondeurs",
+  "description": "Système non officiel pour Polaris 3e édition (Black Book Editions). Résolution au d20 en lecture directe : atteindre le résultat le plus haut possible sans dépasser ses chances de réussite.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "Karad"
+    }
+  ],
+  "esmodules": ["module/polaris.mjs"],
+  "styles": ["styles/polaris.css"],
+  "languages": [
+    {
+      "lang": "fr",
+      "name": "Français",
+      "path": "lang/fr.json"
+    },
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "documentTypes": {
+    "Actor": {
+      "personnage": {},
+      "pnj": {}
+    },
+    "Item": {
+      "arme": {},
+      "protection": {},
+      "equipement": {},
+      "trait": {}
+    }
+  },
+  "packs": [],
+  "packFolders": [],
+  "socket": false,
+  "grid": {
+    "distance": 1,
+    "units": "m",
+    "type": 1
+  }
+}

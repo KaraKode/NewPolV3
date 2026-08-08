@@ -1,0 +1,114 @@
+{{!-- Étape 5 — Les avantages et désavantages.
+
+     Deux enveloppes séparées, que l'archétype peut abonder indépendamment.
+     Chaque ligne saisie deviendra un Item « trait » sur le personnage créé. --}}
+
+<p class="polaris-aide">{{localize "POLARIS.Creation.Aide.avantages"}}</p>
+
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Genre.avantage"}}</h3>
+
+<div class="polaris-creation-compteur">
+  <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
+  <strong data-budget="avantages"
+          class="{{#if budgets.avantages.depasse}}polaris-budget-depasse{{/if}}">
+    {{#if budgets.avantages.illimite}}
+      {{budgets.avantages.depense}}
+    {{else}}
+      {{budgets.avantages.depense}} / {{budgets.avantages.budget}}
+    {{/if}}
+  </strong>
+  {{#if budgets.avantages.illimite}}
+    <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
+  {{/if}}
+</div>
+
+<table class="polaris-table polaris-table-creation">
+  <thead>
+    <tr>
+      <th>{{localize "POLARIS.Genre.avantage"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.cout"}}</th>
+      <th>{{localize "POLARIS.Champ.description"}}</th>
+      <th class="polaris-colonne-action"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each donnees.avantages as |avantage index|}}
+      <tr>
+        <td><input type="text" name="avantages.{{index}}.nom" value="{{avantage.nom}}" /></td>
+        <td class="polaris-colonne-nombre">
+          <input type="number" name="avantages.{{index}}.cout" value="{{avantage.cout}}"
+                 data-dtype="Number" />
+        </td>
+        <td><input type="text" name="avantages.{{index}}.description" value="{{avantage.description}}" /></td>
+        <td class="polaris-colonne-action">
+          <button type="button" data-action="retirerLigne" data-liste="avantages" data-index="{{index}}"
+                  data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    {{else}}
+      <tr><td colspan="4" class="polaris-vide">{{localize "POLARIS.Message.aucunItem"}}</td></tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<button type="button" class="polaris-bouton-ajout-large" data-action="ajouterLigne" data-liste="avantages">
+  <i class="fa-solid fa-plus"></i>
+  {{localize "POLARIS.Creation.ajouterAvantage"}}
+</button>
+
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Genre.desavantage"}}</h3>
+
+<div class="polaris-creation-compteur">
+  <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
+  <strong data-budget="desavantages"
+          class="{{#if budgets.desavantages.depasse}}polaris-budget-depasse{{/if}}">
+    {{#if budgets.desavantages.illimite}}
+      {{budgets.desavantages.depense}}
+    {{else}}
+      {{budgets.desavantages.depense}} / {{budgets.desavantages.budget}}
+    {{/if}}
+  </strong>
+  {{#if budgets.desavantages.illimite}}
+    <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
+  {{/if}}
+</div>
+
+<table class="polaris-table polaris-table-creation">
+  <thead>
+    <tr>
+      <th>{{localize "POLARIS.Genre.desavantage"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.cout"}}</th>
+      <th>{{localize "POLARIS.Champ.description"}}</th>
+      <th class="polaris-colonne-action"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each donnees.desavantages as |desavantage index|}}
+      <tr>
+        <td><input type="text" name="desavantages.{{index}}.nom" value="{{desavantage.nom}}" /></td>
+        <td class="polaris-colonne-nombre">
+          <input type="number" name="desavantages.{{index}}.cout" value="{{desavantage.cout}}"
+                 data-dtype="Number" />
+        </td>
+        <td><input type="text" name="desavantages.{{index}}.description" value="{{desavantage.description}}" /></td>
+        <td class="polaris-colonne-action">
+          <button type="button" data-action="retirerLigne" data-liste="desavantages" data-index="{{index}}"
+                  data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    {{else}}
+      <tr><td colspan="4" class="polaris-vide">{{localize "POLARIS.Message.aucunItem"}}</td></tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<button type="button" class="polaris-bouton-ajout-large" data-action="ajouterLigne" data-liste="desavantages">
+  <i class="fa-solid fa-plus"></i>
+  {{localize "POLARIS.Creation.ajouterDesavantage"}}
+</button>
+
+<p class="polaris-aide">{{localize "POLARIS.Creation.Aide.traitsEnItems"}}</p>

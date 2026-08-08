@@ -1,0 +1,68 @@
+{{!-- Étape 4 — L'expérience préliminaire.
+
+     Ce que le personnage a fait avant de commencer à jouer : ses métiers. Le
+     livre n'ayant pas encore livré sa liste ni son barème, chaque ligne se
+     saisit à la main et l'ensemble est consigné en note sur la fiche. --}}
+
+<p class="polaris-aide">{{localize "POLARIS.Creation.Aide.experiencePreliminaire"}}</p>
+
+<div class="polaris-creation-compteur">
+  <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
+  <strong data-budget="experiencePreliminaire"
+          class="{{#if budgets.experiencePreliminaire.depasse}}polaris-budget-depasse{{/if}}">
+    {{#if budgets.experiencePreliminaire.illimite}}
+      {{budgets.experiencePreliminaire.depense}}
+    {{else}}
+      {{budgets.experiencePreliminaire.depense}} / {{budgets.experiencePreliminaire.budget}}
+    {{/if}}
+  </strong>
+  {{#if budgets.experiencePreliminaire.illimite}}
+    <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
+  {{/if}}
+</div>
+
+<table class="polaris-table polaris-table-creation">
+  <thead>
+    <tr>
+      <th>{{localize "POLARIS.Creation.metier"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.cout"}}</th>
+      <th>{{localize "POLARIS.Champ.notes"}}</th>
+      <th class="polaris-colonne-action"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each donnees.metiers as |metier index|}}
+      <tr>
+        <td>
+          <input type="text" name="metiers.{{index}}.nom" value="{{metier.nom}}"
+                 placeholder="{{localize 'POLARIS.Creation.placeholderMetier'}}" />
+        </td>
+        <td class="polaris-colonne-nombre">
+          <input type="number" name="metiers.{{index}}.cout" value="{{metier.cout}}"
+                 min="0" data-dtype="Number" />
+        </td>
+        <td>
+          <input type="text" name="metiers.{{index}}.description" value="{{metier.description}}" />
+        </td>
+        <td class="polaris-colonne-action">
+          <button type="button"
+                  data-action="retirerLigne"
+                  data-liste="metiers"
+                  data-index="{{index}}"
+                  data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    {{else}}
+      <tr>
+        <td colspan="4" class="polaris-vide">{{localize "POLARIS.Creation.aucunMetier"}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<button type="button" class="polaris-bouton-ajout-large" data-action="ajouterLigne" data-liste="metiers">
+  <i class="fa-solid fa-plus"></i>
+  {{localize "POLARIS.Creation.ajouterMetier"}}
+</button>

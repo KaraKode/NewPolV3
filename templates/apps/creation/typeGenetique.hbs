@@ -1,0 +1,110 @@
+{{!-- Étape 2 — Le type génétique.
+
+     Il alimente la ligne « Modif. type génétique » de la feuille. Tant que le
+     catalogue du livre n'est pas saisi, l'écran bascule en saisie libre : un
+     nom au choix et des modificateurs à la main. --}}
+
+<p class="polaris-aide">{{localize "POLARIS.Creation.Aide.typeGenetique"}}</p>
+
+{{#if catalogueTypesVide}}
+  <p class="polaris-avertissement">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    {{localize "POLARIS.Creation.Avertissement.catalogueTypesVide"}}
+  </p>
+
+  <label class="polaris-champ-large">
+    <span>{{localize "POLARIS.Champ.typeGenetique"}}</span>
+    <input type="text" name="typeGenetique" value="{{donnees.typeGenetique}}" />
+  </label>
+{{else}}
+  <label class="polaris-champ-large">
+    <span>{{localize "POLARIS.Champ.typeGenetique"}}</span>
+    {{!-- `data-recharge` déclenche un rendu complet : changer de type
+          redistribue tous les modificateurs. --}}
+    <select name="typeGenetique" data-recharge="typeGenetique">
+      <option value="">—</option>
+      {{#each typesGenetiques as |type cle|}}
+        <option value="{{cle}}" {{#if (eq cle @root.donnees.typeGenetique)}}selected{{/if}}>
+          {{localize type.label}}
+        </option>
+      {{/each}}
+    </select>
+  </label>
+
+  {{#if typeChoisi}}
+    {{#if typeChoisi.description}}
+      <p class="polaris-creation-description">{{localize typeChoisi.description}}</p>
+    {{/if}}
+
+    {{!-- Le type génétique se paie sur la même bourse que les attributs :
+          l'afficher ici évite la mauvaise surprise au retour à l'étape 1. --}}
+    <div class="polaris-creation-compteur">
+      <span>{{localize "POLARIS.Creation.coutType"}}</span>
+      <strong class="{{#if budgets.pointsCreation.depasse}}polaris-budget-depasse{{/if}}">
+        {{#if coutTypeInconnu}}?{{else}}{{typeChoisi.cout}}{{/if}}
+      </strong>
+      <span class="polaris-creation-detail-bourse">
+        {{localize "POLARIS.Creation.pointsDepenses"}}
+        {{budgets.pointsCreation.depense}} / {{budgets.pointsCreation.budget}}
+      </span>
+    </div>
+
+    {{#if coutTypeInconnu}}
+      <p class="polaris-avertissement">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        {{localize "POLARIS.Creation.Avertissement.coutTypeInconnu"}}
+      </p>
+    {{/if}}
+  {{/if}}
+{{/if}}
+
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Composante.modifType"}}</h3>
+
+<table class="polaris-table polaris-table-creation">
+  <thead>
+    <tr>
+      <th>{{localize "POLARIS.Champ.attributs"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Composante.base"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Composante.modifType"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Composante.actuel"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Composante.aptitude"}}</th>
+      <th>{{localize "POLARIS.Creation.qualite"}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each attributs as |attribut|}}
+      <tr>
+        <td><strong>{{attribut.abbr}}</strong></td>
+        <td class="polaris-colonne-nombre">{{attribut.base}}</td>
+
+        <td class="polaris-colonne-nombre">
+          {{#if @root.catalogueTypesVide}}
+            <input type="number"
+                   name="attributs.{{attribut.cle}}.modifType"
+                   value="{{attribut.modifType}}"
+                   data-dtype="Number" />
+          {{else}}
+            {{!-- Valeur imposée par le catalogue : lecture seule, mais elle doit
+                  malgré tout accompagner le formulaire. --}}
+            <span class="polaris-valeur-forte">{{polarisSigne attribut.modifType}}</span>
+            <input type="hidden"
+                   name="attributs.{{attribut.cle}}.modifType"
+                   value="{{attribut.modifType}}"
+                   data-dtype="Number" />
+          {{/if}}
+        </td>
+
+        <td class="polaris-colonne-nombre polaris-valeur-forte">{{attribut.actuel}}</td>
+        <td class="polaris-colonne-nombre">{{polarisSigne attribut.aptitude}}</td>
+        <td class="polaris-creation-qualite">
+          {{attribut.qualite}}
+          {{!-- Le niveau de base n'est pas modifiable ici, mais il doit voyager
+                avec le formulaire : sans cela, revenir à l'étape 1 le perdrait.
+                L'input reste dans une cellule, un contenu libre dans <tbody>
+                étant déplacé hors du tableau par le navigateur. --}}
+          <input type="hidden" name="attributs.{{attribut.cle}}.base" value="{{attribut.base}}" data-dtype="Number" />
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

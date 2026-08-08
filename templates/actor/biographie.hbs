@@ -1,0 +1,81 @@
+<section class="tab {{tab.cssClass}}" data-tab="{{tab.id}}" data-group="{{tab.group}}">
+
+  {{!-- Bloc « Description physique » de la feuille officielle. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.descriptionPhysique"}}</h2>
+
+  <div class="polaris-grille-champs">
+    {{#each config.champsDescription as |champ|}}
+      <label>
+        <span>{{localize (polarisConcat "POLARIS.Champ." champ)}}</span>
+        <input type="text"
+               name="system.description.{{champ}}"
+               value="{{lookup @root.system.description champ}}"
+               {{#unless @root.modifiable}}disabled{{/unless}} />
+      </label>
+    {{/each}}
+
+    <label>
+      <span>{{localize "POLARIS.Champ.lateralite"}}</span>
+      <select name="system.description.lateralite" {{#unless modifiable}}disabled{{/unless}}>
+        {{#each config.lateralites as |label cle|}}
+          <option value="{{cle}}" {{#if (eq @root.system.description.lateralite cle)}}selected{{/if}}>
+            {{localize label}}
+          </option>
+        {{/each}}
+      </select>
+    </label>
+  </div>
+
+  <label class="polaris-champ-large">
+    <span>{{localize "POLARIS.Champ.signesParticuliers"}}</span>
+    <input type="text" name="system.description.signesParticuliers"
+           value="{{system.description.signesParticuliers}}"
+           {{#unless modifiable}}disabled{{/unless}} />
+  </label>
+
+  {{!-- Suite du bloc d'état civil, dont l'en-tête ne montre que le début. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.origines"}}</h2>
+
+  <div class="polaris-grille-champs">
+    {{#each config.champsIdentite as |champ|}}
+      <label>
+        <span>{{localize (polarisConcat "POLARIS.Champ." champ)}}</span>
+        <input type="text"
+               name="system.identite.{{champ}}"
+               value="{{lookup @root.system.identite champ}}"
+               {{#unless @root.modifiable}}disabled{{/unless}} />
+      </label>
+    {{/each}}
+
+    <label>
+      <span>{{localize "POLARIS.Champ.fecondite"}}</span>
+      <select name="system.identite.feconde" {{#unless modifiable}}disabled{{/unless}}>
+        <option value="true" {{#if system.identite.feconde}}selected{{/if}}>
+          {{localize "POLARIS.Fecondite.fecond"}}
+        </option>
+        <option value="false" {{#unless system.identite.feconde}}selected{{/unless}}>
+          {{localize "POLARIS.Fecondite.sterile"}}
+        </option>
+      </select>
+    </label>
+  </div>
+
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.avantages"}}</h2>
+  <textarea name="system.notes.avantages" rows="4"
+            {{#unless modifiable}}disabled{{/unless}}>{{system.notes.avantages}}</textarea>
+
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.notesEquipement"}}</h2>
+  <textarea name="system.notes.equipement" rows="4"
+            {{#unless modifiable}}disabled{{/unless}}>{{system.notes.equipement}}</textarea>
+
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Onglet.biographie"}}</h2>
+
+  {{!-- Élément natif V13 : éditeur ProseMirror avec bascule affichage/édition. --}}
+  <prose-mirror name="system.biographie"
+                value="{{system.biographie}}"
+                toggled
+                {{#unless modifiable}}disabled{{/unless}}>
+    {{{biographieEnrichie}}}
+  </prose-mirror>
+
+</section>

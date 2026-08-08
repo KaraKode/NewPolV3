@@ -1,0 +1,10 @@
+<div class="polaris-carte-item">
+  <header class="polaris-carte-entete">
+    <img src="{{item.img}}" alt="{{item.name}}" width="36" height="36" />
+    <h3>{{item.name}}</h3>
+  </header>
+
+  {{#if system.description}}
+    <div class="polaris-carte-description">{{{system.description}}}</div>
+  {{/if}}
+</div>

@@ -1,0 +1,18 @@
+{{!-- Barre d'onglets. Les boutons sont en type="button" pour ne pas soumettre le formulaire.
+
+     La classe `tabs` n'est pas décorative : ApplicationV2#changeTab retrouve le
+     bouton à activer avec le sélecteur `.tabs > [data-group][data-tab]`. Sans
+     elle, la recherche échoue et le changement d'onglet lève une erreur. Les
+     boutons doivent pour la même raison rester enfants DIRECTS de ce nav. --}}
+<nav class="tabs polaris-onglets" data-group="primaire">
+  {{#each tabs as |onglet|}}
+    <button type="button"
+            class="polaris-onglet {{onglet.cssClass}}"
+            data-action="changerOnglet"
+            data-tab="{{onglet.id}}"
+            data-group="{{onglet.group}}">
+      <i class="{{onglet.icon}}"></i>
+      <span>{{localize onglet.label}}</span>
+    </button>
+  {{/each}}
+</nav>

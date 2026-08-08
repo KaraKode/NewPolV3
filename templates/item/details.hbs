@@ -1,0 +1,221 @@
+<section class="polaris-details-item">
+
+  {{!-- Champs communs à tous les objets --}}
+  <div class="polaris-grille-champs">
+    <label>
+      <span>{{localize "POLARIS.Champ.quantite"}}</span>
+      <input type="number" name="system.quantite" value="{{system.quantite}}" min="0"
+             {{#unless modifiable}}disabled{{/unless}} />
+    </label>
+    <label>
+      <span>{{localize "POLARIS.Champ.encombrement"}}</span>
+      <input type="number" name="system.encombrement" value="{{system.encombrement}}" min="0" step="any"
+             {{#unless modifiable}}disabled{{/unless}} />
+    </label>
+    <label>
+      <span>{{localize "POLARIS.Champ.prix"}}</span>
+      <input type="number" name="system.prix" value="{{system.prix}}" min="0" step="any"
+             {{#unless modifiable}}disabled{{/unless}} />
+    </label>
+    <label class="polaris-case-libelle">
+      <span>{{localize "POLARIS.Champ.equipe"}}</span>
+      <input type="checkbox" name="system.equipe" {{checked system.equipe}}
+             {{#unless modifiable}}disabled{{/unless}} />
+    </label>
+  </div>
+
+  {{#if estArme}}
+    <h2 class="polaris-titre-section">{{localize "POLARIS.TypeItem.arme"}}</h2>
+
+    {{!-- Colonnes communes aux deux tables d'armes de la feuille officielle. --}}
+    <div class="polaris-grille-champs">
+      <label>
+        <span>{{localize "POLARIS.Champ.categorieArme"}}</span>
+        <select name="system.categorie" {{#unless modifiable}}disabled{{/unless}}>
+          {{#each config.categoriesArme as |def cle|}}
+            <option value="{{cle}}" {{#if (eq cle @root.system.categorie)}}selected{{/if}}>
+              {{localize def.label}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.competence"}}</span>
+        <select name="system.competence" {{#unless modifiable}}disabled{{/unless}}>
+          {{#each config.competences as |def cle|}}
+            <option value="{{cle}}" {{#if (eq cle @root.system.competence)}}selected{{/if}}>
+              {{localize def.label}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.degats"}}</span>
+        <input type="text" name="system.degats" value="{{system.degats}}"
+               placeholder="{{config.degatsMainsNues}}" {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.penetration"}}</span>
+        <input type="number" name="system.penetration" value="{{system.penetration}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.choc"}}</span>
+        <input type="number" name="system.choc" value="{{system.choc}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.forceMin"}}</span>
+        <input type="number" name="system.forceMin" value="{{system.forceMin}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.initiativeArme"}}</span>
+        <input type="number" name="system.initiative" value="{{system.initiative}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.itg"}}</span>
+        <input type="text" name="system.itg" value="{{system.itg}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.modificateur"}}</span>
+        <input type="number" name="system.modificateur" value="{{system.modificateur}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+    </div>
+
+    {{#if system.estTir}}
+      {{!-- Colonnes propres à la table ARMES (TIR). --}}
+      <h3 class="polaris-titre-sous-section">{{localize "POLARIS.Champ.portees"}}</h3>
+      <p class="polaris-aide">{{localize "POLARIS.Aide.portees"}}</p>
+
+      <div class="polaris-grille-champs">
+        {{#each config.porteesTir as |def cle|}}
+          <label>
+            <span>{{localize def.label}} <em>({{polarisSigne def.mod}})</em></span>
+            <input type="number"
+                   name="system.portees.{{cle}}"
+                   value="{{lookup @root.system.portees cle}}"
+                   min="0"
+                   {{#unless @root.modifiable}}disabled{{/unless}} />
+          </label>
+        {{/each}}
+        <label>
+          <span>{{localize "POLARIS.Champ.modeTir"}}</span>
+          <select name="system.modeTir" {{#unless modifiable}}disabled{{/unless}}>
+            {{#each config.modesTir as |def cle|}}
+              <option value="{{cle}}" {{#if (eq cle @root.system.modeTir)}}selected{{/if}}>
+                {{localize def.label}}
+              </option>
+            {{/each}}
+          </select>
+        </label>
+        <label>
+          <span>{{localize "POLARIS.Champ.munitions"}}</span>
+          <span class="polaris-paire">
+            <input type="number" name="system.munitions.value" value="{{system.munitions.value}}" min="0"
+                   {{#unless modifiable}}disabled{{/unless}} />
+            <span class="polaris-separateur">/</span>
+            <input type="number" name="system.munitions.max" value="{{system.munitions.max}}" min="0"
+                   {{#unless modifiable}}disabled{{/unless}} />
+          </span>
+        </label>
+        <label>
+          <span>{{localize "POLARIS.Champ.coutMunitions"}}</span>
+          <input type="number" name="system.munitions.cout" value="{{system.munitions.cout}}" min="0" step="any"
+                 {{#unless modifiable}}disabled{{/unless}} />
+        </label>
+        <label class="polaris-champ-large">
+          <span>{{localize "POLARIS.Champ.notes"}}</span>
+          <input type="text" name="system.notes" value="{{system.notes}}"
+                 {{#unless modifiable}}disabled{{/unless}} />
+        </label>
+      </div>
+    {{else}}
+      {{!-- Colonne propre à la table ARMES (CONTACT). --}}
+      <div class="polaris-grille-champs">
+        <label>
+          <span>{{localize "POLARIS.Champ.allonge"}}</span>
+          <input type="number" name="system.allonge" value="{{system.allonge}}"
+                 {{#unless modifiable}}disabled{{/unless}} />
+        </label>
+      </div>
+    {{/if}}
+  {{/if}}
+
+  {{#if estProtection}}
+    <h2 class="polaris-titre-section">{{localize "POLARIS.TypeItem.protection"}}</h2>
+
+    {{!-- Colonnes de la table PROTECTIONS : Protection | Choc | Localisation | Cat./malus --}}
+    <div class="polaris-grille-champs">
+      <label>
+        <span>{{localize "POLARIS.Champ.protection"}}</span>
+        <input type="number" name="system.protection" value="{{system.protection}}" min="0"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.choc"}}</span>
+        <input type="number" name="system.choc" value="{{system.choc}}" min="0"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.categorieProtection"}}</span>
+        <input type="text" name="system.categorie" value="{{system.categorie}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.malus"}}</span>
+        <input type="number" name="system.malus" value="{{system.malus}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label class="polaris-case-libelle">
+        <span>{{localize "POLARIS.Champ.etancheite"}}</span>
+        <input type="checkbox" name="system.etancheite" {{checked system.etancheite}}
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+    </div>
+
+    <h3 class="polaris-titre-sous-section">{{localize "POLARIS.Champ.zonesCouvertes"}}</h3>
+    <div class="polaris-grille-champs">
+      {{#each system.localisations as |couverte cle|}}
+        <label class="polaris-case-libelle">
+          <span>{{localize (lookup (lookup @root.config.localisations cle) "label")}}</span>
+          <input type="checkbox" name="system.localisations.{{cle}}" {{checked couverte}}
+                 {{#unless @root.modifiable}}disabled{{/unless}} />
+        </label>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if estTrait}}
+    <h2 class="polaris-titre-section">{{localize "POLARIS.TypeItem.trait"}}</h2>
+    <div class="polaris-grille-champs">
+      <label>
+        <span>{{localize "POLARIS.Champ.genre"}}</span>
+        <select name="system.genre" {{#unless modifiable}}disabled{{/unless}}>
+          {{#each config.genresTrait as |label cle|}}
+            <option value="{{cle}}" {{#if (eq cle @root.system.genre)}}selected{{/if}}>
+              {{localize label}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.cout"}}</span>
+        <input type="number" name="system.cout" value="{{system.cout}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+    </div>
+  {{/if}}
+
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.description"}}</h2>
+  <prose-mirror name="system.description"
+                value="{{system.description}}"
+                toggled
+                {{#unless modifiable}}disabled{{/unless}}>
+    {{{descriptionEnrichie}}}
+  </prose-mirror>
+
+</section>

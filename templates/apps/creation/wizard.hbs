@@ -1,0 +1,73 @@
+{{!-- Coquille de l'assistant : en-tête permanent, barre de progression,
+      contenu de l'étape courante, puis navigation. --}}
+
+<header class="polaris-creation-entete">
+  <label class="polaris-creation-nom">
+    <span>{{localize "POLARIS.Champ.nom"}}</span>
+    <input type="text"
+           name="name"
+           value="{{donnees.name}}"
+           placeholder="{{localize 'POLARIS.Creation.placeholderNom'}}"
+           autofocus />
+  </label>
+
+  {{!-- L'ambiance n'est pas décorative : elle fixe la Chance et le budget
+        d'attributs. Elle reste donc affichée à toutes les étapes. --}}
+  <div class="polaris-creation-ambiance"
+       data-tooltip="{{localize 'POLARIS.Creation.aideAmbiance'}}">
+    <i class="fa-solid fa-water"></i>
+    <span>{{nomAmbiance}}</span>
+    <span class="polaris-creation-ambiance-detail">
+      {{localize "POLARIS.Attribut.chc.long"}} {{ambiance.chance}} ·
+      {{ambiance.pointsAttributs}} {{localize "POLARIS.Creation.points"}}
+    </span>
+  </div>
+</header>
+
+<nav class="polaris-creation-progression">
+  {{#each etapes as |etape|}}
+    <button type="button"
+            class="polaris-creation-jalon
+                   {{#if etape.active}}polaris-jalon-actif{{/if}}
+                   {{#if etape.franchie}}polaris-jalon-franchi{{/if}}"
+            data-action="allerEtape"
+            data-index="{{etape.index}}"
+            {{#unless etape.franchie}}{{#unless etape.active}}disabled{{/unless}}{{/unless}}>
+      <span class="polaris-jalon-numero">
+        {{#if etape.franchie}}<i class="fa-solid fa-check"></i>{{else}}{{etape.numero}}{{/if}}
+      </span>
+      <span class="polaris-jalon-label">{{localize etape.label}}</span>
+    </button>
+  {{/each}}
+</nav>
+
+<section class="polaris-creation-corps">
+  {{> (lookup . "templateEtape") }}
+</section>
+
+{{#if erreurs.length}}
+  <ul class="polaris-creation-erreurs">
+    {{#each erreurs as |erreur|}}
+      <li><i class="fa-solid fa-circle-exclamation"></i> {{erreur}}</li>
+    {{/each}}
+  </ul>
+{{/if}}
+
+<footer class="polaris-creation-pied">
+  <button type="button" data-action="etapePrecedente" {{#if premiereEtape}}disabled{{/if}}>
+    <i class="fa-solid fa-chevron-left"></i>
+    {{localize "POLARIS.Creation.precedent"}}
+  </button>
+
+  {{#if derniereEtape}}
+    <button type="button" class="polaris-bouton-primaire" data-action="creerPersonnage">
+      <i class="fa-solid fa-user-plus"></i>
+      {{localize "POLARIS.Creation.creer"}}
+    </button>
+  {{else}}
+    <button type="button" class="polaris-bouton-primaire" data-action="etapeSuivante">
+      {{localize "POLARIS.Creation.suivant"}}
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  {{/if}}
+</footer>

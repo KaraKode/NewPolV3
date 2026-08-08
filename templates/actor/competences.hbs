@@ -1,0 +1,79 @@
+<section class="tab {{tab.cssClass}}" data-tab="{{tab.id}}" data-group="{{tab.group}}">
+
+  <p class="polaris-aide">{{localize "POLARIS.Aide.jetCompetence"}}</p>
+
+  {{#each competencesParCategorie as |liste categorie|}}
+    <h2 class="polaris-titre-section">
+      {{localize (lookup @root.config.categoriesCompetence categorie)}}
+    </h2>
+
+    {{!-- Colonnes de la feuille officielle : Attr. | Base | Maît. | Glob. --}}
+    <table class="polaris-table polaris-table-competences">
+      <thead>
+        <tr>
+          <th>{{localize "POLARIS.Champ.competence"}}</th>
+          <th class="polaris-colonne-attributs">{{localize "POLARIS.Champ.attributsCourt"}}</th>
+          <th class="polaris-colonne-nombre"
+              data-tooltip="{{localize 'POLARIS.Infobulle.baseCompetence'}}">
+            {{localize "POLARIS.Champ.base"}}
+          </th>
+          <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.maitriseCourt"}}</th>
+          <th class="polaris-colonne-nombre"
+              data-tooltip="{{localize 'POLARIS.Infobulle.globaleCompetence'}}">
+            {{localize "POLARIS.Champ.globale"}}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each liste as |competence|}}
+          <tr>
+            <td>
+              <button type="button"
+                      class="polaris-lien-jet"
+                      data-action="jetCompetence"
+                      data-competence="{{competence.cle}}">
+                <i class="fa-solid fa-dice-d20"></i>
+                {{competence.label}}
+              </button>
+
+              {{#each competence.marqueurs as |marqueur|}}
+                <span class="polaris-marqueur">{{marqueur}}</span>
+              {{/each}}
+
+              {{#if competence.specialisation}}
+                <span class="polaris-specialisation">({{competence.specialisation}})</span>
+              {{/if}}
+            </td>
+
+            <td class="polaris-colonne-attributs">
+              {{#each competence.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
+            </td>
+
+            <td class="polaris-colonne-nombre">{{competence.base}}</td>
+
+            <td class="polaris-colonne-nombre">
+              <input type="number"
+                     name="system.competences.{{competence.cle}}.maitrise"
+                     value="{{competence.maitrise}}"
+                     min="{{@root.config.bornesMaitrise.min}}"
+                     max="{{@root.config.bornesMaitrise.max}}"
+                     {{#unless @root.modifiable}}disabled{{/unless}} />
+            </td>
+
+            <td class="polaris-colonne-nombre polaris-chances">{{competence.globale}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/each}}
+
+  {{!-- Légende des marqueurs, reprise du bas de page de la feuille officielle. --}}
+  <p class="polaris-legende">
+    {{#each config.marqueursCompetence as |marqueur cle|}}
+      <span class="polaris-legende-item">
+        <span class="polaris-marqueur">{{marqueur.symbole}}</span> {{localize marqueur.label}}
+      </span>
+    {{/each}}
+  </p>
+
+</section>

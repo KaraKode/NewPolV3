@@ -1,0 +1,33 @@
+<div class="polaris-dialogue-corps">
+
+  <p class="polaris-dialogue-intro">
+    {{localize "POLARIS.Dialogue.introJet"}}
+    <strong>{{nomCompetence}}</strong>
+  </p>
+
+  <div class="polaris-dialogue-champs">
+    <label>
+      <span>{{localize "POLARIS.Champ.difficulte"}}</span>
+      <select name="difficulte">
+        {{#each difficultes as |def cle|}}
+          <option value="{{cle}}" {{#if (eq cle @root.difficulteParDefaut)}}selected{{/if}}>
+            {{localize def.label}} ({{polarisSigne def.mod}})
+          </option>
+        {{/each}}
+      </select>
+    </label>
+
+    <label>
+      <span>{{localize "POLARIS.Champ.modificateurLibre"}}</span>
+      <input type="number" name="modificateur" value="{{modificateurInitial}}" />
+    </label>
+  </div>
+
+  <div class="polaris-dialogue-apercu">
+    <span>{{localize "POLARIS.Champ.chancesFinales"}}</span>
+    <strong data-apercu-chances>{{chancesBase}}</strong>
+  </div>
+
+  <p class="polaris-dialogue-rappel">{{localize "POLARIS.Aide.rappelLectureDirecte"}}</p>
+
+</div>

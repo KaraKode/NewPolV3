@@ -1,0 +1,70 @@
+<header class="polaris-entete">
+  <img class="polaris-portrait"
+       src="{{acteur.img}}"
+       alt="{{acteur.name}}"
+       data-edit="img"
+       role="button"
+       tabindex="0" />
+
+  <div class="polaris-entete-corps">
+    <input class="polaris-nom"
+           type="text"
+           name="name"
+           value="{{acteur.name}}"
+           placeholder="{{localize 'POLARIS.Champ.nom'}}"
+           {{#unless modifiable}}disabled{{/unless}} />
+
+    <div class="polaris-identite">
+      <label>
+        <span>{{localize "POLARIS.Champ.archetype"}}</span>
+        <input type="text" name="system.identite.archetype" value="{{system.identite.archetype}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label>
+        <span>{{localize "POLARIS.Champ.typeGenetique"}}</span>
+        <input type="text" name="system.identite.typeGenetique" value="{{system.identite.typeGenetique}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label class="polaris-champ-court">
+        <span>{{localize "POLARIS.Champ.age"}}</span>
+        <input type="number" name="system.identite.age" value="{{system.identite.age}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+      <label class="polaris-champ-court">
+        <span>{{localize "POLARIS.Champ.sexe"}}</span>
+        <input type="text" name="system.identite.sexe" value="{{system.identite.sexe}}"
+               {{#unless modifiable}}disabled{{/unless}} />
+      </label>
+    </div>
+
+    {{!-- Résumé permanent de l'état de santé : le malus courant conditionne
+          tous les jets, il doit rester visible quel que soit l'onglet. --}}
+    <div class="polaris-bandeau-etat">
+      <span class="polaris-etat-item"
+            data-tooltip="{{localize 'POLARIS.Infobulle.malusBlessures'}}">
+        <i class="fa-solid fa-heart-crack"></i>
+        {{localize "POLARIS.Champ.malus"}} {{polarisSigne system.sante.malus}}
+      </span>
+
+      <span class="polaris-etat-item"
+            data-tooltip="{{localize 'POLARIS.Infobulle.initiative'}}">
+        <i class="fa-solid fa-bolt"></i>
+        {{localize "POLARIS.Secondaire.reaction"}} {{system.secondaires.reaction}}
+      </span>
+
+      {{#if system.sante.actionImpossible}}
+        <span class="polaris-etat-item polaris-etat-alerte">
+          <i class="fa-solid fa-ban"></i>
+          {{localize "POLARIS.Champ.actionImpossible"}}
+        </span>
+      {{/if}}
+
+      {{#if system.sante.mort}}
+        <span class="polaris-etat-item polaris-etat-alerte">
+          <i class="fa-solid fa-skull"></i>
+          {{localize "POLARIS.Champ.mort"}}
+        </span>
+      {{/if}}
+    </div>
+  </div>
+</header>

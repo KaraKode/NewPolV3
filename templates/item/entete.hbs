@@ -1,0 +1,21 @@
+<header class="polaris-entete polaris-entete-item">
+  <img class="polaris-portrait polaris-portrait-item"
+       src="{{item.img}}"
+       alt="{{item.name}}"
+       data-edit="img"
+       role="button"
+       tabindex="0" />
+
+  <div class="polaris-entete-corps">
+    <input class="polaris-nom"
+           type="text"
+           name="name"
+           value="{{item.name}}"
+           placeholder="{{localize 'POLARIS.Champ.nom'}}"
+           {{#unless modifiable}}disabled{{/unless}} />
+
+    <div class="polaris-type-item">
+      {{localize (lookup config.typesItem item.type)}}
+    </div>
+  </div>
+</header>

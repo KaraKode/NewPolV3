@@ -1,0 +1,56 @@
+<section class="tab {{tab.cssClass}}" data-tab="{{tab.id}}" data-group="{{tab.group}}">
+
+  {{#each itemsParType as |liste type|}}
+    <div class="polaris-bloc-items">
+      <h2 class="polaris-titre-section">
+        {{localize (lookup @root.config.typesItem type)}}
+        {{#if @root.modifiable}}
+          <button type="button"
+                  class="polaris-bouton-ajout"
+                  data-action="creerItem"
+                  data-type="{{type}}"
+                  data-tooltip="{{localize 'POLARIS.Action.ajouter'}}">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        {{/if}}
+      </h2>
+
+      {{#if liste.length}}
+        <ul class="polaris-liste-items">
+          {{#each liste as |item|}}
+            <li class="polaris-ligne-item" data-item-id="{{item.id}}" data-drag="true" draggable="true">
+              <img class="polaris-icone-item" src="{{item.img}}" alt="{{item.name}}" />
+
+              <button type="button"
+                      class="polaris-lien-jet polaris-nom-item"
+                      data-action="utiliserItem"
+                      data-tooltip="{{localize 'POLARIS.Infobulle.utiliserItem'}}">
+                {{item.name}}
+              </button>
+
+              {{#if item.system.quantite}}
+                <span class="polaris-quantite">×{{item.system.quantite}}</span>
+              {{/if}}
+
+              {{#if @root.modifiable}}
+                <span class="polaris-controles-item">
+                  <button type="button" data-action="editerItem"
+                          data-tooltip="{{localize 'POLARIS.Action.editer'}}">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button type="button" data-action="supprimerItem"
+                          data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </span>
+              {{/if}}
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="polaris-vide">{{localize "POLARIS.Message.aucunItem"}}</p>
+      {{/if}}
+    </div>
+  {{/each}}
+
+</section>

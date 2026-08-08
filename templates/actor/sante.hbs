@@ -1,0 +1,160 @@
+<section class="tab {{tab.cssClass}}" data-tab="{{tab.id}}" data-group="{{tab.group}}">
+
+  <p class="polaris-aide">{{localize "POLARIS.Aide.blessures"}}</p>
+
+  {{!-- Rappel des deux tables de localisation : le contact et le tir ne
+        touchent pas aux mêmes endroits. --}}
+  <table class="polaris-table polaris-table-localisation">
+    <thead>
+      <tr>
+        <th class="polaris-colonne-intitule"></th>
+        {{#each config.localisations as |zone cle|}}
+          <th>{{localize zone.label}}</th>
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each config.tablesLocalisation as |table cleTable|}}
+        <tr>
+          <th class="polaris-colonne-intitule">{{localize table.label}}</th>
+          {{#each @root.config.localisations as |zone cle|}}
+            {{#with (lookup table.intervalles cle) as |intervalle|}}
+              <td class="polaris-colonne-nombre polaris-intervalle">
+                {{#if (eq (lookup intervalle 0) (lookup intervalle 1))}}
+                  {{lookup intervalle 0}}
+                {{else}}
+                  {{lookup intervalle 0}}–{{lookup intervalle 1}}
+                {{/if}}
+              </td>
+            {{/with}}
+          {{/each}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{!-- La grille de blessures. Chaque case se coche au clic : cliquer sur la
+        n-ième case porte le compte à n, recliquer sur la dernière cochée le
+        redescend. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.blessures"}}</h2>
+
+  <div class="polaris-defilement-horizontal">
+    <table class="polaris-table polaris-table-blessures">
+      <thead>
+        <tr>
+          <th class="polaris-colonne-intitule">{{localize "POLARIS.Champ.gravite"}}</th>
+          {{#each config.localisations as |zone cle|}}
+            <th>{{localize zone.label}}</th>
+          {{/each}}
+          <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.malus"}}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {{#each config.gravitesBlessure as |gravite cleGravite|}}
+          <tr class="polaris-ligne-gravite polaris-gravite-{{cleGravite}}">
+            <th class="polaris-colonne-intitule">
+              {{localize gravite.label}}
+              <span class="polaris-seuil">({{gravite.seuil}})</span>
+            </th>
+
+            {{#each @root.config.localisations as |zone cleZone|}}
+              <td class="polaris-cellule-blessure">
+                {{#with (lookup (lookup @root.config.casesBlessure cleGravite) cleZone) as |nbCases|}}
+                  {{#if nbCases}}
+                    {{#each (polarisSerie nbCases) as |index|}}
+                      <button type="button"
+                              class="polaris-case
+                                     {{#if (polarisJusqua index (lookup (lookup @root.system.sante.blessures cleGravite) cleZone))}}polaris-case-cochee{{/if}}"
+                              data-action="cocherBlessure"
+                              data-gravite="{{cleGravite}}"
+                              data-localisation="{{cleZone}}"
+                              data-index="{{index}}"
+                              aria-pressed="{{#if (polarisJusqua index (lookup (lookup @root.system.sante.blessures cleGravite) cleZone))}}true{{else}}false{{/if}}"
+                              {{#unless @root.modifiable}}disabled{{/unless}}></button>
+                    {{/each}}
+                  {{else}}
+                    {{!-- Ni case ni malus : la feuille imprime « Mort » à cet
+                          endroit, une blessure de ce niveau y est fatale. --}}
+                    <span class="polaris-case-mort">{{localize "POLARIS.Champ.mort"}}</span>
+                  {{/if}}
+                {{/with}}
+
+                {{#with (lookup (lookup @root.config.malusBlessure cleGravite) cleZone) as |malusPropre|}}
+                  <span class="polaris-malus-case">{{polarisSigne malusPropre}}</span>
+                {{/with}}
+              </td>
+            {{/each}}
+
+            <td class="polaris-colonne-nombre polaris-valeur-forte">
+              {{#if gravite.actionImpossible}}
+                <span data-tooltip="{{localize 'POLARIS.Champ.actionImpossible'}}">
+                  {{polarisSigne gravite.malus}} <i class="fa-solid fa-ban"></i>
+                </span>
+              {{else}}
+                {{polarisSigne gravite.malus}}
+              {{/if}}
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Dépouillement de la grille. Le cumul des malus n'étant pas confirmé par
+        le livre, les deux lectures sont affichées côte à côte. --}}
+  <div class="polaris-bilan-sante">
+    <div class="polaris-bilan-item polaris-bilan-principal">
+      <span>{{localize "POLARIS.Champ.malusApplique"}}</span>
+      <strong>{{polarisSigne system.sante.malus}}</strong>
+    </div>
+    <div class="polaris-bilan-item">
+      <span>{{localize "POLARIS.Champ.malusCumule"}}</span>
+      <strong>{{polarisSigne system.sante.malusCumule}}</strong>
+    </div>
+    <div class="polaris-bilan-item">
+      <span>{{localize "POLARIS.Champ.malusPire"}}</span>
+      <strong>{{polarisSigne system.sante.malusPire}}</strong>
+    </div>
+    <label class="polaris-bilan-item">
+      <span>{{localize "POLARIS.Champ.mort"}}</span>
+      <input type="checkbox" name="system.sante.mort" {{#if system.sante.mort}}checked{{/if}}
+             {{#unless modifiable}}disabled{{/unless}} />
+    </label>
+  </div>
+
+  {{!-- Protections, sommées sur les objets équipés : lecture seule, on modifie
+        la protection sur la fiche de l'objet. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.protectionParZone"}}</h2>
+
+  <table class="polaris-table">
+    <thead>
+      <tr>
+        <th>{{localize "POLARIS.Champ.localisation"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.protection"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.choc"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.blessures"}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each system.sante.parLocalisation as |zone cle|}}
+        <tr>
+          <td>{{zone.label}}</td>
+          {{#with (lookup @root.system.sante.protections cle) as |protection|}}
+            <td class="polaris-colonne-nombre">{{protection.protection}}</td>
+            <td class="polaris-colonne-nombre">{{protection.choc}}</td>
+          {{/with}}
+          <td class="polaris-colonne-nombre">
+            {{zone.cases}}
+            {{#if zone.cases}}<span class="polaris-malus-case">{{polarisSigne zone.malus}}</span>{{/if}}
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.sequelles"}}</h2>
+  <textarea name="system.notes.sequelles" rows="4"
+            {{#unless modifiable}}disabled{{/unless}}>{{system.notes.sequelles}}</textarea>
+
+</section>

@@ -1,0 +1,134 @@
+{{!-- Étape 1 — Les capacités de base.
+
+     Tout attribut démarre à 7 et se monte niveau par niveau. Les boutons
+     remplacent une saisie libre à dessein : le coût progressif ne peut alors
+     pas être contourné en sautant une tranche. --}}
+
+<p class="polaris-aide">{{localize "POLARIS.Creation.Aide.capacitesBase"}}</p>
+
+{{!-- L'archétype propose une répartition toute faite. C'est un raccourci, pas
+      une contrainte : les niveaux restent ajustables juste en dessous. --}}
+<label class="polaris-champ-large">
+  <span>{{localize "POLARIS.Champ.archetype"}}</span>
+  <select name="archetype" data-recharge="archetype">
+    <option value="">{{localize "POLARIS.Creation.sansArchetype"}}</option>
+    {{#each archetypes as |archetype cle|}}
+      <option value="{{cle}}" {{#if (eq cle @root.donnees.archetype)}}selected{{/if}}>
+        {{localize archetype.label}}
+      </option>
+    {{/each}}
+  </select>
+</label>
+
+{{#if repartitionManquante}}
+  <p class="polaris-avertissement">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    {{localize "POLARIS.Creation.Avertissement.repartitionManquante"}}
+  </p>
+{{/if}}
+
+<div class="polaris-creation-compteur">
+  <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
+  <strong data-budget="pointsCreation"
+          class="{{#if budgets.pointsCreation.depasse}}polaris-budget-depasse{{/if}}">
+    {{budgets.pointsCreation.depense}} / {{budgets.pointsCreation.budget}}
+  </strong>
+
+  {{!-- Le type génétique puise dans la même bourse : on le détaille pour que la
+        différence entre les deux chiffres ne surprenne pas. --}}
+  {{#if budgets.pointsCreation.detailType}}
+    <span class="polaris-creation-detail-bourse">
+      ({{localize "POLARIS.Champ.attributs"}} {{budgets.pointsCreation.detailAttributs}}
+      + {{localize "POLARIS.Champ.typeGenetique"}} {{budgets.pointsCreation.detailType}})
+    </span>
+  {{/if}}
+</div>
+
+<table class="polaris-table polaris-table-creation">
+  <thead>
+    <tr>
+      <th>{{localize "POLARIS.Champ.attributs"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Composante.base"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.coutTotal"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.coutProchain"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Composante.aptitude"}}</th>
+      <th>{{localize "POLARIS.Creation.qualite"}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each attributs as |attribut|}}
+      <tr class="{{#unless attribut.repartissable}}polaris-ligne-verrouillee{{/unless}}">
+        <td>
+          <strong>{{attribut.abbr}}</strong>
+          <span class="polaris-creation-nom-long">{{attribut.label}}</span>
+        </td>
+
+        <td class="polaris-colonne-nombre">
+          {{#if attribut.repartissable}}
+            <span class="polaris-reglette">
+              <button type="button"
+                      data-action="ajusterAttribut"
+                      data-attribut="{{attribut.cle}}"
+                      data-sens="descendre"
+                      {{#unless attribut.peutDescendre}}disabled{{/unless}}
+                      data-tooltip="{{localize 'POLARIS.Creation.baisser'}}">
+                <i class="fa-solid fa-minus"></i>
+              </button>
+
+              <span class="polaris-reglette-valeur">{{attribut.base}}</span>
+
+              <button type="button"
+                      data-action="ajusterAttribut"
+                      data-attribut="{{attribut.cle}}"
+                      data-sens="monter"
+                      {{#unless attribut.peutMonter}}disabled{{/unless}}
+                      data-tooltip="{{localize 'POLARIS.Creation.monter'}}">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </span>
+          {{else}}
+            {{!-- La Chance ne s'achète pas : elle découle de l'ambiance. --}}
+            <span class="polaris-reglette-valeur"
+                  data-tooltip="{{localize 'POLARIS.Creation.chanceImposee'}}">
+              {{attribut.base}} <i class="fa-solid fa-lock"></i>
+            </span>
+          {{/if}}
+        </td>
+
+        <td class="polaris-colonne-nombre">
+          {{#if attribut.repartissable}}{{attribut.coutConsenti}}{{else}}—{{/if}}
+        </td>
+
+        <td class="polaris-colonne-nombre polaris-cout-marginal">
+          {{#if attribut.repartissable}}
+            {{#if attribut.peutMonter}}{{attribut.coutProchain}}{{else}}—{{/if}}
+          {{else}}—{{/if}}
+        </td>
+
+        <td class="polaris-colonne-nombre polaris-valeur-forte">
+          {{polarisSigne attribut.aptitude}}
+        </td>
+
+        <td class="polaris-creation-qualite">{{attribut.qualite}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<p class="polaris-legende">
+  {{#each config.creation.attributs.couts as |tranche|}}
+    <span class="polaris-legende-item">
+      {{tranche.min}}–{{tranche.max}} :
+      {{tranche.cout}} {{localize "POLARIS.Creation.pointParNiveau"}}
+    </span>
+  {{/each}}
+</p>
+
+{{!-- Les composantes non modifiables ici voyagent quand même avec le
+      formulaire, sinon la navigation les remettrait à zéro. Ces champs sont
+      hors du tableau : un contenu libre dans <tbody> serait déplacé par le
+      navigateur. --}}
+{{#each attributs as |attribut|}}
+  <input type="hidden" name="attributs.{{attribut.cle}}.base" value="{{attribut.base}}" data-dtype="Number" />
+  <input type="hidden" name="attributs.{{attribut.cle}}.modifType" value="{{attribut.modifType}}" data-dtype="Number" />
+{{/each}}

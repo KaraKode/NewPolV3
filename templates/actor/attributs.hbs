@@ -1,0 +1,127 @@
+<section class="tab {{tab.cssClass}}" data-tab="{{tab.id}}" data-group="{{tab.group}}">
+
+  {{!-- Les attributs sont disposés en colonnes, comme sur la feuille officielle :
+        trois lignes de saisie, puis le niveau actuel et l'aptitude naturelle
+        qui en dérivent. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Onglet.attributs"}}</h2>
+
+  <div class="polaris-defilement-horizontal">
+    <table class="polaris-table polaris-table-attributs">
+      <thead>
+        <tr>
+          <th class="polaris-colonne-intitule"></th>
+          {{#each system.attributs as |attribut cle|}}
+            <th>
+              <button type="button"
+                      class="polaris-attribut-nom"
+                      data-action="jetAttribut"
+                      data-attribut="{{cle}}"
+                      data-tooltip="{{attribut.label}} — {{localize 'POLARIS.Infobulle.jetAttribut'}}">
+                {{attribut.abbr}}
+              </button>
+            </th>
+          {{/each}}
+        </tr>
+      </thead>
+
+      <tbody>
+        {{#each config.composantesAttribut as |composante|}}
+          <tr>
+            <th class="polaris-colonne-intitule">
+              {{localize (polarisConcat "POLARIS.Composante." composante)}}
+            </th>
+            {{#each @root.system.attributs as |attribut cle|}}
+              <td class="polaris-colonne-nombre">
+                <input type="number"
+                       name="system.attributs.{{cle}}.{{composante}}"
+                       value="{{lookup attribut composante}}"
+                       min="{{@root.config.bornesAttribut.min}}"
+                       max="{{@root.config.bornesAttribut.max}}"
+                       {{#unless @root.modifiable}}disabled{{/unless}} />
+              </td>
+            {{/each}}
+          </tr>
+        {{/each}}
+
+        <tr class="polaris-ligne-derivee">
+          <th class="polaris-colonne-intitule">{{localize "POLARIS.Composante.actuel"}}</th>
+          {{#each system.attributs as |attribut cle|}}
+            <td class="polaris-colonne-nombre polaris-valeur-forte">{{attribut.actuel}}</td>
+          {{/each}}
+        </tr>
+
+        <tr class="polaris-ligne-derivee">
+          <th class="polaris-colonne-intitule"
+              data-tooltip="{{localize 'POLARIS.Infobulle.aptitudeNaturelle'}}">
+            {{localize "POLARIS.Composante.aptitude"}}
+          </th>
+          {{#each system.attributs as |attribut cle|}}
+            <td class="polaris-colonne-nombre polaris-valeur-forte">{{attribut.aptitude}}</td>
+          {{/each}}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {{#unless config.tableAptitudeNaturelle}}
+    <p class="polaris-avertissement">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      {{localize "POLARIS.Avertissement.aptitudeProvisoire"}}
+    </p>
+  {{/unless}}
+
+  {{!-- Attributs secondaires : ceux dont le livre donne la formule sont
+        recalculés, les autres restent en saisie libre. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.secondaires"}}</h2>
+
+  <div class="polaris-grille-secondaires">
+    {{#each system.secondairesDetail as |secondaire cle|}}
+      <div class="polaris-secondaire {{#if secondaire.derive}}polaris-secondaire-derive{{/if}}">
+        <span class="polaris-secondaire-label">{{secondaire.label}}</span>
+
+        {{#if secondaire.derive}}
+          <span class="polaris-secondaire-valeur"
+                data-tooltip="{{localize 'POLARIS.Infobulle.valeurDerivee'}}">
+            {{secondaire.valeur}}
+          </span>
+        {{else}}
+          <input class="polaris-secondaire-valeur"
+                 type="number"
+                 name="system.secondaires.{{cle}}"
+                 value="{{secondaire.valeur}}"
+                 {{#unless @root.modifiable}}disabled{{/unless}} />
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.deplacements"}}</h2>
+
+  <table class="polaris-table polaris-table-deplacements">
+    <thead>
+      <tr>
+        <th class="polaris-colonne-intitule"></th>
+        {{#each config.alluresDeplacement as |label allure|}}
+          <th class="polaris-colonne-nombre">{{localize label}}</th>
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each config.milieuxDeplacement as |label milieu|}}
+        <tr>
+          <th class="polaris-colonne-intitule">{{localize label}}</th>
+          {{#each @root.config.alluresDeplacement as |labelAllure allure|}}
+            <td class="polaris-colonne-nombre">
+              <input type="number"
+                     name="system.deplacements.{{milieu}}.{{allure}}"
+                     value="{{lookup (lookup @root.system.deplacements milieu) allure}}"
+                     min="0"
+                     {{#unless @root.modifiable}}disabled{{/unless}} />
+            </td>
+          {{/each}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+</section>

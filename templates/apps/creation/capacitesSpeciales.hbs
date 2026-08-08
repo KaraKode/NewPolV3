@@ -1,0 +1,62 @@
+{{!-- Étape 3 — Les capacités spéciales.
+
+     Contrairement aux compétences génériques, elles s'achètent, et n'apparaîtront
+     sur la fiche que si elles ont effectivement été acquises. --}}
+
+<p class="polaris-aide">{{localize "POLARIS.Creation.Aide.capacitesSpeciales"}}</p>
+
+<div class="polaris-creation-compteur">
+  <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
+  <strong data-budget="capacitesSpeciales"
+          class="{{#if budgets.capacitesSpeciales.depasse}}polaris-budget-depasse{{/if}}">
+    {{#if budgets.capacitesSpeciales.illimite}}
+      {{budgets.capacitesSpeciales.depense}}
+    {{else}}
+      {{budgets.capacitesSpeciales.depense}} / {{budgets.capacitesSpeciales.budget}}
+    {{/if}}
+  </strong>
+  {{#if budgets.capacitesSpeciales.illimite}}
+    <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
+  {{/if}}
+</div>
+
+{{#if capacitesSpeciales.length}}
+  <table class="polaris-table polaris-table-creation">
+    <thead>
+      <tr>
+        <th>{{localize "POLARIS.Champ.competence"}}</th>
+        <th class="polaris-colonne-attributs">{{localize "POLARIS.Champ.attributsCourt"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.base"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.maitriseCourt"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.globale"}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each capacitesSpeciales as |capacite|}}
+        <tr class="{{#unless capacite.acquise}}polaris-ligne-inactive{{/unless}}">
+          <td>{{capacite.label}}</td>
+          <td class="polaris-colonne-attributs">
+            {{#each capacite.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
+          </td>
+          <td class="polaris-colonne-nombre">{{capacite.base}}</td>
+          <td class="polaris-colonne-nombre">
+            <input type="number"
+                   name="competences.{{capacite.cle}}"
+                   value="{{capacite.maitrise}}"
+                   min="{{@root.config.bornesMaitrise.min}}"
+                   max="{{@root.config.bornesMaitrise.max}}"
+                   data-dtype="Number" />
+          </td>
+          <td class="polaris-colonne-nombre polaris-valeur-forte">{{capacite.globale}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+{{else}}
+  {{!-- Aucune compétence n'est encore marquée `speciale` dans la config : on le
+        dit franchement plutôt que d'afficher un tableau vide. --}}
+  <p class="polaris-avertissement">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    {{localize "POLARIS.Creation.Avertissement.aucuneSpeciale"}}
+  </p>
+{{/if}}

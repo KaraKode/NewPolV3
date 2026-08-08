@@ -1,0 +1,1109 @@
+/**
+ * Feuille de style du système Polaris V3.
+ * Thème abyssal : bleus profonds, accents cyan phosphorescents.
+ */
+
+.polaris {
+  --pol-abysse: #061420;
+  --pol-fond: #0d2436;
+  --pol-fond-clair: #14344b;
+  --pol-bordure: #1e567a;
+  --pol-accent: #4fd1e0;
+  --pol-accent-sombre: #2a8fa3;
+  --pol-texte: #dcecf4;
+  --pol-texte-doux: #8fb2c4;
+  --pol-succes: #4fd18a;
+  --pol-critique: #ffd166;
+  --pol-echec: #d16a6a;
+  --pol-echec-critique: #ff5c5c;
+}
+
+/* -------------------------------------------- */
+/*  Onglets                                     */
+/* -------------------------------------------- */
+
+/* Règle fonctionnelle : seul l'onglet actif est visible. */
+.polaris .tab {
+  display: none;
+}
+
+.polaris .tab.active {
+  display: block;
+}
+
+.polaris .polaris-onglets {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--pol-bordure);
+  margin-bottom: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.polaris .polaris-onglet {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: var(--pol-texte-doux);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+}
+
+.polaris .polaris-onglet:hover {
+  color: var(--pol-accent);
+  background: rgba(79, 209, 224, 0.08);
+}
+
+.polaris .polaris-onglet.active {
+  color: var(--pol-accent);
+  border-bottom-color: var(--pol-accent);
+}
+
+/* -------------------------------------------- */
+/*  En-tête                                     */
+/* -------------------------------------------- */
+
+.polaris .polaris-entete {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pol-bordure);
+  margin-bottom: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.polaris .polaris-portrait {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 2px solid var(--pol-bordure);
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.polaris .polaris-portrait-item {
+  width: 64px;
+  height: 64px;
+}
+
+.polaris .polaris-entete-corps {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.polaris .polaris-nom {
+  font-size: 1.35rem;
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: var(--pol-texte);
+}
+
+.polaris .polaris-nom:hover,
+.polaris .polaris-nom:focus {
+  border-bottom-color: var(--pol-accent);
+}
+
+.polaris .polaris-identite {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.35rem 0.6rem;
+}
+
+.polaris .polaris-identite label,
+.polaris .polaris-grille-champs label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+/* Bandeau d'état de l'en-tête : reste visible quel que soit l'onglet. */
+.polaris .polaris-bandeau-etat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.polaris .polaris-etat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 999px;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-etat-alerte {
+  border-color: var(--pol-echec-critique);
+  color: var(--pol-echec-critique);
+}
+
+.polaris .polaris-separateur {
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-type-item {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pol-accent-sombre);
+}
+
+/* -------------------------------------------- */
+/*  Sections et tableaux                        */
+/* -------------------------------------------- */
+
+.polaris .polaris-titre-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--pol-accent);
+  border-bottom: 1px solid var(--pol-bordure);
+  padding-bottom: 0.2rem;
+  margin: 0.9rem 0 0.5rem;
+}
+
+.polaris .polaris-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.polaris .polaris-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pol-texte-doux);
+  padding: 0.25rem 0.4rem;
+  font-weight: 600;
+}
+
+.polaris .polaris-table td {
+  padding: 0.15rem 0.4rem;
+  border-top: 1px solid rgba(30, 86, 122, 0.4);
+}
+
+.polaris .polaris-table tbody tr:hover {
+  background: rgba(79, 209, 224, 0.06);
+}
+
+.polaris .polaris-colonne-nombre {
+  width: 5rem;
+  text-align: center;
+}
+
+.polaris .polaris-colonne-nombre input {
+  width: 100%;
+  text-align: center;
+}
+
+.polaris .polaris-colonne-attributs {
+  width: 7rem;
+}
+
+.polaris .polaris-chances {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--pol-accent);
+}
+
+.polaris .polaris-puce {
+  display: inline-block;
+  padding: 0.05rem 0.3rem;
+  margin-right: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border: 1px solid var(--pol-bordure);
+  border-radius: 3px;
+  color: var(--pol-texte-doux);
+}
+
+/* -------------------------------------------- */
+/*  Attributs                                   */
+/* -------------------------------------------- */
+
+/* Les attributs sont en colonnes, comme sur la feuille papier. Le tableau peut
+   déborder sur une fenêtre étroite : on le laisse défiler seul plutôt que
+   d'écraser les colonnes. */
+.polaris .polaris-defilement-horizontal {
+  overflow-x: auto;
+}
+
+.polaris .polaris-table-attributs th,
+.polaris .polaris-table-attributs td {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.polaris .polaris-colonne-intitule {
+  text-align: left !important;
+  font-size: 0.72rem;
+  color: var(--pol-texte-doux);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.polaris .polaris-table-attributs input {
+  width: 3rem;
+  text-align: center;
+}
+
+/* Lignes calculées : mises en avant, jamais saisissables. */
+.polaris .polaris-ligne-derivee {
+  background: var(--pol-fond-clair);
+}
+
+.polaris .polaris-valeur-forte {
+  font-weight: 700;
+  color: var(--pol-accent);
+}
+
+.polaris .polaris-attribut-nom {
+  background: transparent;
+  border: none;
+  color: var(--pol-texte);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+}
+
+.polaris .polaris-attribut-nom:hover {
+  color: var(--pol-accent);
+  text-shadow: 0 0 6px rgba(79, 209, 224, 0.5);
+}
+
+/* -------------------------------------------- */
+/*  Attributs secondaires                       */
+/* -------------------------------------------- */
+
+.polaris .polaris-grille-secondaires {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.4rem;
+}
+
+.polaris .polaris-secondaire {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+}
+
+.polaris .polaris-secondaire-label {
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-secondaire-valeur {
+  width: 3.25rem;
+  flex: 0 0 auto;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Un secondaire dérivé se distingue du saisi : sa valeur n'est pas un champ. */
+.polaris .polaris-secondaire-derive {
+  border-left: 3px solid var(--pol-accent-sombre);
+}
+
+.polaris .polaris-secondaire-derive .polaris-secondaire-valeur {
+  color: var(--pol-accent);
+}
+
+.polaris .polaris-table-deplacements input {
+  width: 3.5rem;
+  text-align: center;
+}
+
+/* -------------------------------------------- */
+/*  Santé et blessures                          */
+/* -------------------------------------------- */
+
+.polaris .polaris-table-localisation .polaris-intervalle {
+  font-variant-numeric: tabular-nums;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-table-blessures th,
+.polaris .polaris-table-blessures td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.polaris .polaris-seuil {
+  color: var(--pol-texte-doux);
+  font-weight: 400;
+}
+
+.polaris .polaris-cellule-blessure {
+  white-space: nowrap;
+}
+
+/* Une case de blessure : carré cliquable, rempli quand elle est attribuée. */
+.polaris .polaris-case {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0 0.06rem;
+  padding: 0;
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 2px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.polaris .polaris-case:hover:not(:disabled) {
+  border-color: var(--pol-accent);
+  box-shadow: 0 0 5px rgba(79, 209, 224, 0.6);
+}
+
+.polaris .polaris-case-cochee {
+  background: var(--pol-echec);
+  border-color: var(--pol-echec-critique);
+}
+
+.polaris .polaris-case-mort {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pol-echec-critique);
+}
+
+/* Malus propre à une case, imprimé à côté d'elle sur la feuille. */
+.polaris .polaris-malus-case {
+  margin-left: 0.3rem;
+  font-size: 0.68rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-gravite-mortelle,
+.polaris .polaris-gravite-destruction {
+  background: rgba(209, 106, 106, 0.08);
+}
+
+.polaris .polaris-bilan-sante {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.polaris .polaris-bilan-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-bilan-principal {
+  border-color: var(--pol-accent-sombre);
+}
+
+.polaris .polaris-bilan-principal strong {
+  color: var(--pol-accent);
+  font-size: 1rem;
+}
+
+/* -------------------------------------------- */
+/*  Compétences et items                        */
+/* -------------------------------------------- */
+
+.polaris .polaris-lien-jet {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--pol-texte);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  width: auto;
+}
+
+.polaris .polaris-lien-jet:hover {
+  color: var(--pol-accent);
+  text-shadow: 0 0 6px rgba(79, 209, 224, 0.5);
+}
+
+.polaris .polaris-lien-jet i {
+  color: var(--pol-accent-sombre);
+  margin-right: 0.25rem;
+}
+
+.polaris .polaris-specialisation {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-aide {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--pol-texte-doux);
+  margin: 0 0 0.5rem;
+}
+
+.polaris .polaris-vide {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--pol-texte-doux);
+  padding: 0.3rem 0.4rem;
+}
+
+.polaris .polaris-liste-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.polaris .polaris-ligne-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border-top: 1px solid rgba(30, 86, 122, 0.4);
+}
+
+.polaris .polaris-ligne-item:hover {
+  background: rgba(79, 209, 224, 0.06);
+}
+
+.polaris .polaris-icone-item {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border: 1px solid var(--pol-bordure);
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.polaris .polaris-nom-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.polaris .polaris-quantite {
+  font-size: 0.8rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-controles-item {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.polaris .polaris-controles-item button,
+.polaris .polaris-bouton-ajout {
+  background: transparent;
+  border: none;
+  color: var(--pol-texte-doux);
+  cursor: pointer;
+  padding: 0.15rem 0.3rem;
+  width: auto;
+  line-height: 1;
+}
+
+.polaris .polaris-controles-item button:hover,
+.polaris .polaris-bouton-ajout:hover {
+  color: var(--pol-accent);
+}
+
+.polaris .polaris-grille-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem 0.75rem;
+}
+
+/* Libellé de case à cocher dans un formulaire : le texte reste à côté de la
+   case, contrairement aux autres champs qui empilent libellé et saisie. */
+.polaris .polaris-case-libelle {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.4rem !important;
+}
+
+.polaris .polaris-paire {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.polaris .polaris-champ-large {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-titre-sous-section {
+  margin: 0.6rem 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pol-texte-doux);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Marqueurs de compétence de la feuille : •, PN, (X), †. */
+.polaris .polaris-marqueur {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--pol-accent-sombre);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 3px;
+}
+
+.polaris .polaris-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-legende-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+/* Signale une donnée de règle encore provisoire. */
+.polaris .polaris-avertissement {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--pol-critique);
+  background: rgba(255, 209, 102, 0.08);
+  border: 1px solid var(--pol-critique);
+  border-radius: 5px;
+}
+
+.polaris textarea {
+  width: 100%;
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 4px;
+  color: var(--pol-texte);
+  padding: 0.4rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* -------------------------------------------- */
+/*  Fenêtre de jet                              */
+/* -------------------------------------------- */
+
+.polaris-dialogue-jet .polaris-dialogue-champs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.polaris-dialogue-jet .polaris-dialogue-champs label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+}
+
+.polaris-dialogue-jet .polaris-dialogue-apercu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: rgba(79, 209, 224, 0.1);
+  border: 1px solid #2a8fa3;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.polaris-dialogue-jet .polaris-dialogue-apercu strong {
+  font-size: 1.5rem;
+  color: #2a8fa3;
+}
+
+.polaris-dialogue-jet .polaris-dialogue-rappel {
+  font-size: 0.7rem;
+  font-style: italic;
+  opacity: 0.75;
+  margin: 0.5rem 0 0;
+}
+
+/* -------------------------------------------- */
+/*  Cartes de chat                              */
+/* -------------------------------------------- */
+
+.polaris-carte-jet {
+  border-left: 3px solid #2a8fa3;
+  padding-left: 0.6rem;
+}
+
+.polaris-carte-jet .polaris-carte-entete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.polaris-carte-jet .polaris-carte-entete h3 {
+  margin: 0;
+  font-size: 1rem;
+  border: none;
+}
+
+.polaris-carte-difficulte {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.polaris-carte-calcul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.35rem 0;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.polaris-carte-calcul .polaris-terme {
+  padding: 0.05rem 0.3rem;
+  border: 1px solid rgba(42, 143, 163, 0.4);
+  border-radius: 3px;
+}
+
+.polaris-carte-resultat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0;
+}
+
+.polaris-carte-resultat .polaris-de {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.polaris-carte-resultat .polaris-cible {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.polaris-carte-resultat .polaris-cible-valeur {
+  font-size: 1.2rem;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.polaris-carte-issue {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85rem;
+}
+
+.polaris-carte-marge {
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+/* Couleur de l'issue : le liseré et le libellé suivent le résultat. */
+.polaris-issue-critique {
+  border-left-color: #d4a017;
+}
+.polaris-issue-critique .polaris-carte-issue {
+  color: #d4a017;
+}
+
+.polaris-issue-reussite {
+  border-left-color: #2e9e63;
+}
+.polaris-issue-reussite .polaris-carte-issue {
+  color: #2e9e63;
+}
+
+.polaris-issue-echec {
+  border-left-color: #a85454;
+}
+.polaris-issue-echec .polaris-carte-issue {
+  color: #a85454;
+}
+
+.polaris-issue-echecCritique {
+  border-left-color: #d32f2f;
+}
+.polaris-issue-echecCritique .polaris-carte-issue {
+  color: #d32f2f;
+}
+
+.polaris-carte-item .polaris-carte-entete {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.polaris-carte-item .polaris-carte-entete h3 {
+  margin: 0;
+  border: none;
+}
+
+/* Malus de blessure dans la décomposition d'un jet : il n'est pas un
+   modificateur choisi, il vient de l'état du personnage. */
+.polaris-carte-calcul .polaris-terme-malus {
+  color: #a85454;
+}
+
+/* Conversion de la marge par la table de la feuille officielle. */
+.polaris-carte-marge .polaris-carte-marge-mod {
+  margin-left: 0.4rem;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+/* -------------------------------------------- */
+/*  Assistant de création                       */
+/* -------------------------------------------- */
+
+.polaris-creation .polaris-creation-entete {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--pol-bordure);
+}
+
+.polaris-creation .polaris-creation-nom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1 1 260px;
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-creation-nom input {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* L'ambiance conditionne la Chance et le budget : elle reste sous les yeux. */
+.polaris-creation .polaris-creation-ambiance {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-accent-sombre);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pol-accent);
+}
+
+.polaris-creation .polaris-creation-ambiance-detail {
+  color: var(--pol-texte-doux);
+  font-weight: 400;
+}
+
+/* Barre de progression : les jalons franchis restent cliquables. */
+.polaris-creation .polaris-creation-progression {
+  display: flex;
+  gap: 0.3rem;
+  margin: 0.7rem 0;
+}
+
+.polaris-creation .polaris-creation-jalon {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.45rem 0.3rem;
+  background: transparent;
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+  color: var(--pol-texte-doux);
+  font-size: 0.68rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-creation-jalon:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.polaris-creation .polaris-jalon-numero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-weight: 700;
+}
+
+.polaris-creation .polaris-jalon-actif {
+  border-color: var(--pol-accent);
+  color: var(--pol-accent);
+  background: rgba(79, 209, 224, 0.08);
+}
+
+.polaris-creation .polaris-jalon-franchi {
+  color: var(--pol-succes);
+  border-color: var(--pol-succes);
+}
+
+.polaris-creation .polaris-creation-corps {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+
+/* Compteur de points : le cœur de chaque étape, donc bien détaché. */
+.polaris-creation .polaris-creation-compteur {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.4rem 0.75rem;
+  background: var(--pol-fond-clair);
+  border-left: 3px solid var(--pol-accent-sombre);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-creation-compteur strong {
+  font-size: 1.1rem;
+  color: var(--pol-accent);
+}
+
+.polaris-creation .polaris-budget-depasse {
+  color: var(--pol-echec-critique) !important;
+}
+
+.polaris-creation .polaris-creation-illimite {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Réglette d'achat d'un attribut. */
+.polaris-creation .polaris-reglette {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.polaris-creation .polaris-reglette button {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 3px;
+  color: var(--pol-texte);
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-reglette button:hover:not(:disabled) {
+  border-color: var(--pol-accent);
+  color: var(--pol-accent);
+}
+
+.polaris-creation .polaris-reglette button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.polaris-creation .polaris-reglette-valeur {
+  min-width: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--pol-texte);
+}
+
+.polaris-creation .polaris-cout-marginal {
+  color: var(--pol-critique);
+}
+
+.polaris-creation .polaris-creation-nom-long {
+  margin-left: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-creation-qualite {
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-ligne-verrouillee,
+.polaris-creation .polaris-ligne-inactive {
+  opacity: 0.6;
+}
+
+.polaris-creation .polaris-creation-description {
+  margin: 0.4rem 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-colonne-action {
+  width: 2.2rem;
+  text-align: center;
+}
+
+.polaris-creation .polaris-colonne-action button {
+  background: transparent;
+  border: none;
+  color: var(--pol-texte-doux);
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-colonne-action button:hover {
+  color: var(--pol-echec-critique);
+}
+
+.polaris-creation .polaris-bouton-ajout-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.4rem;
+  background: transparent;
+  border: 1px dashed var(--pol-bordure);
+  border-radius: 5px;
+  color: var(--pol-texte-doux);
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-bouton-ajout-large:hover {
+  border-color: var(--pol-accent);
+  color: var(--pol-accent);
+}
+
+.polaris-creation .polaris-creation-erreurs {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  list-style: none;
+  background: rgba(255, 92, 92, 0.1);
+  border: 1px solid var(--pol-echec-critique);
+  border-radius: 5px;
+  color: var(--pol-echec-critique);
+  font-size: 0.78rem;
+}
+
+.polaris-creation .polaris-creation-pied {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.6rem;
+  margin-top: 0.6rem;
+  border-top: 1px solid var(--pol-bordure);
+}
+
+.polaris-creation .polaris-creation-pied button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+  color: var(--pol-texte);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-bouton-primaire {
+  background: var(--pol-accent-sombre) !important;
+  border-color: var(--pol-accent) !important;
+}
+
+.polaris-creation .polaris-creation-pied button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Bouton d'accès dans la barre latérale. */
+.polaris-bouton-creation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-bottom: 0.35rem;
+  padding: 0.4rem;
+  cursor: pointer;
+}
+
+/* Détail de la bourse de points : attributs + type génétique. */
+.polaris-creation .polaris-creation-detail-bourse {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--pol-texte-doux);
+}
