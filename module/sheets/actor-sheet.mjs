@@ -23,7 +23,9 @@ export class PolarisActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       creerItem: this.#surCreerItem,
       editerItem: this.#surEditerItem,
       supprimerItem: this.#surSupprimerItem,
-      utiliserItem: this.#surUtiliserItem
+      utiliserItem: this.#surUtiliserItem,
+      acquerirCompetence: this.#surAcquerirCompetence,
+      oublierCompetence: this.#surOublierCompetence
     },
     dragDrop: [{ dragSelector: "[data-drag]", dropSelector: null }]
   };
@@ -57,6 +59,15 @@ export class PolarisActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     // Le personnage et le PNJ partagent la même structure de compétences.
     context.competencesParCategorie = this.actor.system.competencesParCategorie ?? {};
+
+    // Le catalogue de ce qui reste apprenable, et son total : sans lui, les
+    // compétences réservées du livre n'auraient aucun moyen d'entrer sur la
+    // fiche. Le total sert à intituler le volet sans le déplier.
+    context.competencesAAcquerir = this.actor.system.competencesAAcquerir ?? {};
+    context.nombreAAcquerir = Object.values(context.competencesAAcquerir).reduce(
+      (total, liste) => total + liste.length,
+      0
+    );
 
     // Table des marges, à titre d'aide-mémoire sur la fiche. Les libellés sont
     // composés ici : la dernière tranche est ouverte vers le haut (`Infinity`),
@@ -182,6 +193,60 @@ export class PolarisActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const nouveau = actuel === index ? index - 1 : index;
 
     await this.actor.update({ [`system.sante.blessures.${gravite}.${localisation}`]: nouveau });
+  }
+
+  /**
+   * Apprend une compétence réservée.
+   *
+   * Elle entre sur la fiche à son niveau de départ — le « -3 » du livre — et
+   * non à zéro : les premiers niveaux achetés servent à le résorber.
+   */
+  static async #surAcquerirCompetence(event, cible) {
+    const cle = cible.dataset.competence;
+    const competence = this.actor.system.competences?.[cle];
+    if (!competence) return;
+
+    // Le bouton est déjà désactivé dans ce cas ; on ne s'y fie pas pour autant.
+    if (!competence.prerequisRemplis) {
+      ui.notifications.warn(
+        game.i18n.format("POLARIS.Avertissement.prerequisNonRempli", {
+          competence: competence.label,
+          manquants: competence.prerequisManquants
+            .map((p) => `${p.label} ${p.niveau}`)
+            .join(", ")
+        })
+      );
+      return;
+    }
+
+    await this.actor.update({
+      [`system.competences.${cle}.acquise`]: true,
+      [`system.competences.${cle}.maitrise`]: competence.maitriseDepart ?? 0
+    });
+  }
+
+  /**
+   * Retire une compétence apprise, et avec elle le niveau qui y était investi :
+   * la laisser en mémoire ferait réapparaître un niveau acquis par surprise si
+   * la compétence était réapprise plus tard.
+   */
+  static async #surOublierCompetence(event, cible) {
+    const cle = cible.dataset.competence;
+    const competence = this.actor.system.competences?.[cle];
+    if (!competence) return;
+
+    const confirme = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("POLARIS.Dialogue.titreOubli") },
+      content: `<p>${game.i18n.format("POLARIS.Dialogue.confirmerOubli", {
+        nom: competence.label
+      })}</p>`
+    });
+    if (!confirme) return;
+
+    await this.actor.update({
+      [`system.competences.${cle}.acquise`]: false,
+      [`system.competences.${cle}.maitrise`]: competence.maitriseDepart ?? 0
+    });
   }
 
   static async #surCreerItem(event, cible) {

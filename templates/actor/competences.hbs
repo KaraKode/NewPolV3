@@ -22,11 +22,12 @@
               data-tooltip="{{localize 'POLARIS.Infobulle.globaleCompetence'}}">
             {{localize "POLARIS.Champ.globale"}}
           </th>
+          <th class="polaris-colonne-action"><span class="polaris-invisible">{{localize "POLARIS.Champ.actions"}}</span></th>
         </tr>
       </thead>
       <tbody>
         {{#each liste as |competence|}}
-          <tr>
+          <tr class="{{#unless competence.prerequisRemplis}}polaris-prerequis-manquant{{/unless}}">
             <td>
               <button type="button"
                       class="polaris-lien-jet"
@@ -37,8 +38,21 @@
               </button>
 
               {{#each competence.marqueurs as |marqueur|}}
-                <span class="polaris-marqueur">{{marqueur}}</span>
+                {{!-- Un marqueur sans effet mécanique se signale, plutôt que de
+                      laisser croire qu'il agit. --}}
+                <span class="polaris-marqueur {{#unless marqueur.applique}}polaris-marqueur-inerte{{/unless}}"
+                      data-tooltip="{{marqueur.label}}">{{marqueur.symbole}}</span>
               {{/each}}
+
+              {{#unless competence.prerequisRemplis}}
+                <span class="polaris-alerte-prerequis"
+                      data-tooltip="{{localize 'POLARIS.Infobulle.prerequisNonRempli'}}">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  {{#each competence.prerequisManquants as |manquant|}}
+                    <span class="polaris-prerequis-item">{{manquant.label}}&nbsp;{{manquant.niveau}}</span>
+                  {{/each}}
+                </span>
+              {{/unless}}
 
               {{#if competence.specialisation}}
                 <span class="polaris-specialisation">({{competence.specialisation}})</span>
@@ -74,23 +88,114 @@
               <input type="number"
                      name="system.competences.{{competence.cle}}.maitrise"
                      value="{{competence.maitrise}}"
-                     min="{{@root.config.bornesMaitrise.min}}"
+                     min="{{competence.maitriseMinEffective}}"
                      max="{{competence.maitriseMaxEffective}}"
                      {{#unless @root.modifiable}}disabled{{/unless}} />
             </td>
 
             <td class="polaris-colonne-nombre polaris-chances">{{competence.globale}}</td>
+
+            <td class="polaris-colonne-action">
+              {{!-- Seule une compétence APPRISE se désapprend. Une générique est
+                    possédée d'office, une spéciale tient à une mutation : ni
+                    l'une ni l'autre ne se retire d'ici. --}}
+              {{#if competence.aAcquerir}}
+                {{#unless competence.speciale}}
+                  {{#if @root.modifiable}}
+                    <button type="button"
+                            class="polaris-bouton-icone"
+                            data-action="oublierCompetence"
+                            data-competence="{{competence.cle}}"
+                            data-tooltip="{{localize 'POLARIS.Action.oublierCompetence'}}">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  {{/if}}
+                {{/unless}}
+              {{/if}}
+            </td>
           </tr>
         {{/each}}
       </tbody>
     </table>
   {{/each}}
 
+  {{!-- Les compétences réservées ne peuvent pas être utilisées tant qu'elles
+        n'ont pas été apprises : elles vivent donc hors de la fiche, dans ce
+        volet, jusqu'à ce que le personnage les apprenne. Replié par défaut —
+        le livre en compte plus d'une centaine. --}}
+  {{#if modifiable}}
+    <details class="polaris-volet-acquisition">
+      <summary>
+        <i class="fa-solid fa-graduation-cap"></i>
+        {{localize "POLARIS.Titre.competencesAAcquerir"}}
+        <span class="polaris-compteur">{{nombreAAcquerir}}</span>
+      </summary>
+
+      <p class="polaris-aide">{{localize "POLARIS.Aide.competencesAAcquerir"}}</p>
+
+      {{#each competencesAAcquerir as |liste categorie|}}
+        <h3 class="polaris-titre-sous-section">
+          {{localize (lookup @root.config.categoriesCompetence categorie)}}
+        </h3>
+
+        <ul class="polaris-liste-acquisition">
+          {{#each liste as |competence|}}
+            <li class="{{#unless competence.disponible}}polaris-indisponible{{/unless}}">
+              <button type="button"
+                      class="polaris-bouton-icone"
+                      data-action="acquerirCompetence"
+                      data-competence="{{competence.cle}}"
+                      {{#unless competence.disponible}}disabled{{/unless}}
+                      data-tooltip="{{localize 'POLARIS.Action.acquerirCompetence'}}">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+
+              <span class="polaris-nom-competence">{{competence.label}}</span>
+
+              {{#if competence.attributsVariables}}
+                <span class="polaris-attributs-variables">{{localize "POLARIS.Champ.attributsVariables"}}</span>
+              {{else}}
+                {{#each competence.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
+              {{/if}}
+
+              {{!-- Le niveau auquel elle entrera sur la fiche : le « -3 » du
+                    livre, que les premiers niveaux achetés résorbent. --}}
+              {{#if competence.maitriseDepart}}
+                <span class="polaris-depart"
+                      data-tooltip="{{localize 'POLARIS.Infobulle.maitriseDepart'}}">
+                  {{polarisSigne competence.maitriseDepart}}
+                </span>
+              {{/if}}
+
+              {{#unless competence.disponible}}
+                <span class="polaris-alerte-prerequis">
+                  <i class="fa-solid fa-lock"></i>
+                  {{#each competence.prerequisManquants as |manquant|}}
+                    <span class="polaris-prerequis-item">{{manquant.label}}&nbsp;{{manquant.niveau}}</span>
+                  {{/each}}
+                </span>
+              {{/unless}}
+            </li>
+          {{/each}}
+        </ul>
+      {{/each}}
+    </details>
+  {{/if}}
+
   {{!-- Légende des marqueurs, reprise du bas de page de la feuille officielle. --}}
   <p class="polaris-legende">
     {{#each config.marqueursCompetence as |marqueur cle|}}
       <span class="polaris-legende-item">
-        <span class="polaris-marqueur">{{marqueur.symbole}}</span> {{localize marqueur.label}}
+        <span class="polaris-marqueur {{#unless marqueur.applique}}polaris-marqueur-inerte{{/unless}}">{{marqueur.symbole}}</span>
+        {{localize marqueur.label}}
+        {{#unless marqueur.applique}}
+          {{!-- Dire à l'écran qu'un marqueur n'agit pas encore vaut mieux que
+                laisser le joueur supposer un effet qui n'existe pas. --}}
+          <span class="polaris-mention-inerte"
+                data-tooltip="{{localize 'POLARIS.Infobulle.marqueurInerte'}}">
+            {{localize "POLARIS.Champ.marqueurInerte"}}
+          </span>
+        {{/unless}}
       </span>
     {{/each}}
   </p>

@@ -783,20 +783,31 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
 
     const competences = {};
     for (const cle of Object.keys(POLARIS.competences)) {
-      const speciale = Boolean(POLARIS.competences[cle].speciale);
+      const definition = POLARIS.competences[cle];
+      const speciale = Boolean(definition.speciale);
       const saisie = Number(this.donnees.competences[cle]) || 0;
+
+      // Une compétence jamais travaillée vaut son NIVEAU DE DÉPART, pas zéro :
+      // le « (-3) » du livre décrit précisément le personnage qui n'a jamais
+      // touché à la discipline. L'assistant ne fait rien saisir sur les
+      // génériques, elles partent donc toutes de là.
+      const depart = definition.maitriseDepart ?? 0;
 
       // Une spéciale démarre au niveau que sa source impose ; à défaut, et pour
       // toutes les génériques, on retient ce qui a été saisi.
       // (`??` et `||` ne se mélangent pas sans parenthèses : d'où la variable.)
-      const maitrise = speciale ? departs[cle] ?? saisie : saisie;
+      const maitrise = speciale ? departs[cle] ?? saisie : saisie || depart;
 
       competences[cle] = {
         maitrise,
-        // `acquise` est de toute façon recalculé sur la fiche à partir des
-        // traits portés et du type génétique ; on pose ici une valeur cohérente
-        // pour que l'acteur soit correct dès l'instant de sa création.
-        acquise: speciale ? departs[cle] !== undefined : true
+        // Une spéciale est acquise si une source la procure — la fiche le
+        // recalcule de toute façon. Une RÉSERVÉE ne l'est pas : le livre dit
+        // qu'elle ne peut pas être utilisée tant qu'elle n'a pas été apprise,
+        // et elle s'apprend depuis la fiche. La marquer acquise ici ferait
+        // entrer d'un coup les cent quinze compétences réservées du livre.
+        acquise: speciale
+          ? departs[cle] !== undefined
+          : !POLARIS.competenceAAcquerir(cle)
       };
     }
 

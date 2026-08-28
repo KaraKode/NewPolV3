@@ -631,6 +631,7 @@
 }
 
 .polaris .polaris-controles-item button,
+.polaris .polaris-bouton-icone,
 .polaris .polaris-bouton-ajout {
   background: transparent;
   border: none;
@@ -642,6 +643,7 @@
 }
 
 .polaris .polaris-controles-item button:hover,
+.polaris .polaris-bouton-icone:hover,
 .polaris .polaris-bouton-ajout:hover {
   color: var(--pol-accent);
 }
@@ -709,6 +711,133 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
+}
+
+/* Un marqueur dont la règle n'est pas encore appliquée : il reste lisible, mais
+   ne doit pas se donner l'air d'agir. */
+.polaris .polaris-marqueur-inerte {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.polaris .polaris-mention-inerte {
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* -------------------------------------------- */
+/*  Pré-requis                                  */
+/* -------------------------------------------- */
+
+/* Une compétence dont les pré-requis ne sont pas remplis se signale sans se
+   verrouiller : le meneur reste libre d'accorder une exception. */
+.polaris tr.polaris-prerequis-manquant {
+  background: rgba(209, 106, 106, 0.08);
+}
+
+.polaris .polaris-alerte-prerequis {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-left: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--pol-echec);
+}
+
+.polaris .polaris-prerequis-item {
+  padding: 0 0.25rem;
+  border: 1px solid rgba(209, 106, 106, 0.5);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------- */
+/*  Volet des compétences à apprendre           */
+/* -------------------------------------------- */
+
+.polaris .polaris-colonne-action {
+  width: 1.8rem;
+  text-align: center;
+}
+
+/* Un en-tête de colonne qui ne doit rien montrer mais rester lisible aux
+   lecteurs d'écran. */
+.polaris .polaris-invisible {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.polaris .polaris-volet-acquisition {
+  margin-top: 0.9rem;
+  border: 1px solid var(--pol-bordure);
+  border-radius: 4px;
+  background: rgba(20, 52, 75, 0.35);
+}
+
+.polaris .polaris-volet-acquisition > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--pol-texte-doux);
+}
+
+.polaris .polaris-volet-acquisition > summary:hover {
+  color: var(--pol-accent);
+}
+
+.polaris .polaris-volet-acquisition > *:not(summary) {
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+}
+
+.polaris .polaris-compteur {
+  margin-left: auto;
+  padding: 0 0.4rem;
+  border: 1px solid var(--pol-bordure);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  color: var(--pol-accent-sombre);
+}
+
+.polaris .polaris-liste-acquisition {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  /* Plus de cent compétences réservées : deux colonnes évitent un volet
+     interminable, sans imposer une largeur qui casserait sur fiche étroite. */
+  columns: 2;
+  column-gap: 1rem;
+}
+
+.polaris .polaris-liste-acquisition li {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0;
+  break-inside: avoid;
+  font-size: 0.78rem;
+}
+
+/* Un pré-requis non rempli grise la ligne : le bouton est déjà désactivé, mais
+   le contraste seul ne le dirait pas assez. */
+.polaris .polaris-liste-acquisition li.polaris-indisponible {
+  opacity: 0.55;
+}
+
+.polaris .polaris-nom-competence {
+  flex: 0 1 auto;
+}
+
+.polaris .polaris-depart {
+  color: var(--pol-echec);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Signale une donnée de règle encore provisoire. */

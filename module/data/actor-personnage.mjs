@@ -124,9 +124,17 @@ export class PolarisPersonnage extends PolarisActorBase {
       competence.attributsVariables = !definition.attributs;
       competence.attributs = definition.attributs ?? [];
       competence.abbrs = competence.attributs.map((a) => this.attributs[a]?.abbr ?? a);
-      competence.marqueurs = (definition.marqueurs ?? []).map(
-        (m) => POLARIS.marqueursCompetence[m]?.symbole ?? ""
-      );
+      // Les marqueurs voyagent en objets plutôt qu'en symboles : la fiche a
+      // besoin de savoir DE QUEL marqueur il s'agit pour signaler un pré-requis
+      // non rempli, et de son libellé pour l'infobulle.
+      competence.marqueurs = (definition.marqueurs ?? [])
+        .filter((m) => POLARIS.marqueursCompetence[m])
+        .map((m) => ({
+          cle: m,
+          symbole: POLARIS.marqueursCompetence[m].symbole,
+          label: game.i18n.localize(POLARIS.marqueursCompetence[m].label),
+          applique: POLARIS.marqueursCompetence[m].applique
+        }));
 
       // Une compétence spéciale est acquise si et seulement si quelque chose y
       // donne accès — un trait porté ou le type génétique. Le lien est dérivé,
@@ -159,7 +167,54 @@ export class PolarisPersonnage extends PolarisActorBase {
       // de plafond en Handlebars demanderait une acrobatie.
       competence.maitriseMaxEffective = competence.maitriseMax ?? POLARIS.bornesMaitrise.max;
 
+      // Le niveau de DÉPART est un plancher, pas un modificateur : le « (-3) »
+      // du livre place la compétence sous zéro, et les premiers niveaux achetés
+      // servent à le résorber. Il appartient à la source quand il y en a une —
+      // Amphibie procure Hybride à -3, le type génétique hybride à +3.
+      competence.maitriseDepart = source
+        ? source.maitriseDepart
+        : (definition.maitriseDepart ?? 0);
+      competence.maitriseMinEffective = competence.maitriseDepart;
+      if (competence.maitrise < competence.maitriseMinEffective) {
+        competence.maitrise = competence.maitriseMinEffective;
+      }
+
       competence.globale = competence.base + competence.maitrise;
+    }
+
+    this.#preparerPrerequis();
+  }
+
+  /**
+   * Confronte les pré-requis chiffrés du livre — « Électronique 5 » — à ce que
+   * le personnage sait réellement.
+   *
+   * Seconde passe obligatoire : un pré-requis se lit sur une AUTRE compétence,
+   * qui doit donc avoir sa globale. Ce que valent ces 5 — maîtrise ou globale —
+   * est un arbitrage de `POLARIS.basePrerequis`, pas une décision d'ici.
+   *
+   * On ne rabote aucune valeur déjà saisie : un meneur reste libre d'accorder
+   * une exception. La fiche signale, et seul l'apprentissage est bloqué.
+   */
+  #preparerPrerequis() {
+    // Ce que le personnage sait vraiment, tel que le livre le compare.
+    const niveauAtteint = (cle) => {
+      const requise = this.competences[cle];
+      if (!requise || requise.acquise === false) return null;
+      return POLARIS.basePrerequis === "maitrise" ? requise.maitrise : requise.globale;
+    };
+
+    for (const [cle, competence] of Object.entries(this.competences)) {
+      competence.prerequisManquants = POLARIS.prerequisManquants(cle, niveauAtteint).map(
+        (exigence) => ({
+          ...exigence,
+          label: POLARIS.competences[exigence.cle]
+            ? game.i18n.localize(POLARIS.competences[exigence.cle].label)
+            : exigence.cle
+        })
+      );
+
+      competence.prerequisRemplis = competence.prerequisManquants.length === 0;
     }
   }
 
@@ -186,7 +241,7 @@ export class PolarisPersonnage extends PolarisActorBase {
    * qui eux ne la plafonnent pas. On retient donc la règle la PLUS FAVORABLE :
    * un Amphibie devenu géno-hybride n'est plus bridé par sa mutation.
    *
-   * @returns {Record<string, {maitriseMax: number|null, sources: string[]}>}
+   * @returns {Record<string, {maitriseMax: number|null, maitriseDepart: number, sources: string[]}>}
    */
   #sourcesDeCompetences() {
     const sources = {};
@@ -196,13 +251,18 @@ export class PolarisPersonnage extends PolarisActorBase {
 
       const existante = sources[competence.cle];
       const plafond = competence.maitriseMax ?? null;
+      const depart = competence.maitriseDepart ?? 0;
 
       if (!existante) {
-        sources[competence.cle] = { maitriseMax: plafond, sources: [origine] };
+        sources[competence.cle] = { maitriseMax: plafond, maitriseDepart: depart, sources: [origine] };
         return;
       }
 
       existante.sources.push(origine);
+      // Le niveau de départ suit la même règle que le plafond : le plus
+      // favorable gagne. Hybride débute à -3 par la mutation Amphibie et à +3
+      // par le type hybride naturel ; cumuler les deux ne doit pas desservir.
+      existante.maitriseDepart = Math.max(existante.maitriseDepart, depart);
       // `null` signifie « aucun plafond » : il l'emporte sur n'importe quel
       // chiffre, et entre deux chiffres c'est le plus haut qui gagne.
       if (existante.maitriseMax === null || plafond === null) existante.maitriseMax = null;
@@ -249,6 +309,50 @@ export class PolarisPersonnage extends PolarisActorBase {
     // On écarte les catégories vides pour ne pas afficher de section fantôme.
     for (const [cle, liste] of Object.entries(groupes)) {
       if (!liste.length) delete groupes[cle];
+    }
+    return groupes;
+  }
+
+  /**
+   * Le catalogue de ce que le personnage PEUT encore apprendre, groupé par
+   * catégorie — l'envers de `competencesParCategorie`.
+   *
+   * Une compétence réservée « (X) » ne peut pas être utilisée tant qu'elle n'a
+   * pas été apprise : elle reste donc hors de la fiche, et il faut bien un
+   * endroit d'où la faire venir. Sans cette liste, les compétences réservées du
+   * livre seraient inatteignables.
+   *
+   * Les compétences SPÉCIALES en sont exclues : elles ne s'apprennent pas, elles
+   * se reçoivent d'une mutation ou d'un type génétique, et `prepareDerivedData`
+   * recalcule leur acquisition à chaque fois. Les proposer ici laisserait croire
+   * à un choix qui ne tiendrait pas.
+   *
+   * @returns {Record<string, object[]>}
+   */
+  get competencesAAcquerir() {
+    const groupes = {};
+
+    for (const [cle, competence] of Object.entries(this.competences)) {
+      if (competence.abstraite) continue;
+      if (!competence.aAcquerir || competence.speciale) continue;
+      if (competence.acquise) continue;
+
+      const categorie = competence.categorie ?? "aptitudesPhysiques";
+      (groupes[categorie] ??= []).push({
+        cle,
+        label: competence.label,
+        abbrs: competence.abbrs,
+        attributsVariables: competence.attributsVariables,
+        maitriseDepart: competence.maitriseDepart,
+        prerequisManquants: competence.prerequisManquants,
+        // Le pré-requis bloque l'apprentissage, pas l'usage : c'est ici, et
+        // seulement ici, qu'il empêche quelque chose.
+        disponible: competence.prerequisRemplis
+      });
+    }
+
+    for (const liste of Object.values(groupes)) {
+      liste.sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
     }
     return groupes;
   }

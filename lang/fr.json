@@ -569,5 +569,17 @@
   "POLARIS.Competence.armeSpecialeChaine": "Armes spéciales (chaîne)",
   "POLARIS.Competence.armeSpecialeLasso": "Armes spéciales (lasso)",
   "POLARIS.Competence.armeSpecialeFilet": "Armes spéciales (filet)",
-  "POLARIS.Competence.armeSpecialeGrappin": "Armes spéciales (grappin)"
+  "POLARIS.Competence.armeSpecialeGrappin": "Armes spéciales (grappin)",
+  "POLARIS.Titre.competencesAAcquerir": "Compétences à apprendre",
+  "POLARIS.Aide.competencesAAcquerir": "Une compétence réservée ne figure sur la fiche qu'une fois apprise. Elle y entre à son niveau de départ, que les premiers niveaux acquis servent à résorber.",
+  "POLARIS.Action.acquerirCompetence": "Apprendre cette compétence",
+  "POLARIS.Action.oublierCompetence": "Retirer cette compétence",
+  "POLARIS.Dialogue.titreOubli": "Retirer la compétence",
+  "POLARIS.Dialogue.confirmerOubli": "Retirer « {nom} » de la fiche ? Le niveau investi sera perdu.",
+  "POLARIS.Avertissement.prerequisNonRempli": "{competence} demande d'abord : {manquants}.",
+  "POLARIS.Infobulle.prerequisNonRempli": "Pré-requis non rempli : cette compétence ne devrait pas encore être apprise.",
+  "POLARIS.Infobulle.maitriseDepart": "Niveau auquel la compétence entrera sur la fiche.",
+  "POLARIS.Infobulle.marqueurInerte": "Marqueur affiché à titre indicatif : sa règle n'est pas encore appliquée par le système.",
+  "POLARIS.Champ.marqueurInerte": "(indicatif)",
+  "POLARIS.Champ.actions": "Actions"
 }

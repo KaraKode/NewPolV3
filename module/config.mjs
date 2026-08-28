@@ -195,12 +195,18 @@ POLARIS.categoriesCompetence = {
  *   (X) compétence réservée
  *   †   compétence à pré-requis (optionnel)
  * Source : feuille officielle.
+ *
+ * `applique` dit si le marqueur a un EFFET MÉCANIQUE, ou s'il n'est encore
+ * qu'une étiquette affichée. Réservée et pré-requis agissent : la première
+ * masque la compétence tant qu'elle n'est pas apprise, le second en bloque
+ * l'apprentissage. Limitative et progression naturelle attendent leur règle —
+ * la légende de la fiche le signale plutôt que de laisser croire à un effet.
  */
 POLARIS.marqueursCompetence = {
-  limitative: { symbole: "•", label: "POLARIS.MarqueurCompetence.limitative" },
-  progressionNaturelle: { symbole: "PN", label: "POLARIS.MarqueurCompetence.progressionNaturelle" },
-  reservee: { symbole: "(X)", label: "POLARIS.MarqueurCompetence.reservee" },
-  prerequis: { symbole: "†", label: "POLARIS.MarqueurCompetence.prerequis" }
+  limitative: { symbole: "•", label: "POLARIS.MarqueurCompetence.limitative", applique: false },
+  progressionNaturelle: { symbole: "PN", label: "POLARIS.MarqueurCompetence.progressionNaturelle", applique: false },
+  reservee: { symbole: "(X)", label: "POLARIS.MarqueurCompetence.reservee", applique: true },
+  prerequis: { symbole: "†", label: "POLARIS.MarqueurCompetence.prerequis", applique: true }
 };
 
 /**
@@ -494,8 +500,32 @@ POLARIS.competences = {
   systemesSecurite: { label: "POLARIS.Competence.systemesSecurite", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] }
 };
 
-/** Bornes de saisie du niveau de maîtrise d'une compétence. */
-POLARIS.bornesMaitrise = { min: 0, max: 20 };
+/**
+ * Bornes de stockage du niveau de maîtrise d'une compétence.
+ *
+ * Le plancher n'est pas zéro : une compétence à niveau de départ négatif — le
+ * « (-3) » du livre, et toute compétence réservée une fois apprise — se stocke
+ * bel et bien à -3, et les premiers niveaux achetés servent à le résorber.
+ * -3 est le plus bas niveau de départ du livre, donc le plancher absolu.
+ *
+ * Le plancher qui s'applique RÉELLEMENT à une compétence donnée est son propre
+ * niveau de départ : voir `maitriseMinEffective` sur la fiche. Une compétence
+ * ordinaire ne descend pas sous zéro.
+ */
+POLARIS.bornesMaitrise = { min: -3, max: 20 };
+
+/**
+ * ⚠️ À VÉRIFIER — Ce qu'un pré-requis chiffré compare.
+ *
+ * Le livre écrit « Électronique 5 » sans dire si ces 5 sont un niveau de
+ * MAÎTRISE ou une valeur GLOBALE (base + maîtrise). La lecture retenue est la
+ * globale : c'est le nombre que le joueur lit sur sa fiche et sur lequel il
+ * jette. Les seuls niveaux du livre sont 5, 7 et 10, compatibles avec les deux
+ * lectures — seul l'auteur peut trancher.
+ *
+ * Basculer sur "maitrise" ne demande que cette ligne.
+ */
+POLARIS.basePrerequis = "globale";
 
 /**
  * Niveau de base d'une Connaissance des nations / organisations, selon le lien
@@ -566,6 +596,34 @@ POLARIS.competenceAAcquerir = function (cle) {
   const definition = POLARIS.competences[cle];
   if (!definition) return false;
   return Boolean(definition.speciale) || (definition.marqueurs ?? []).includes("reservee");
+};
+
+/**
+ * Confronte les pré-requis d'une compétence à ce qu'un personnage sait.
+ *
+ * Fonction PURE : elle ne connaît ni Foundry ni l'acteur, seulement un moyen de
+ * demander « quel niveau ce personnage a-t-il dans telle compétence ? ». C'est
+ * ce qui la rend vérifiable en Node, comme le moteur de dés.
+ *
+ * `niveauAtteint` retourne `null` pour une compétence que le personnage n'a
+ * pas apprise : une compétence réservée jamais apprise ne remplit rien, si
+ * haute que soit la base que ses attributs lui donneraient.
+ *
+ * @param {string} cle Compétence dont on vérifie les pré-requis.
+ * @param {(cle: string) => number|null} niveauAtteint
+ * @returns {{cle: string, niveau: number, atteint: number|null}[]} Les pré-requis
+ *   qui manquent, vide si la compétence peut être apprise.
+ */
+POLARIS.prerequisManquants = function (cle, niveauAtteint) {
+  const exigences = POLARIS.competences[cle]?.prerequis ?? [];
+
+  return exigences
+    .map((exigence) => ({
+      cle: exigence.cle,
+      niveau: exigence.niveau,
+      atteint: niveauAtteint(exigence.cle)
+    }))
+    .filter((exigence) => exigence.atteint === null || exigence.atteint < exigence.niveau);
 };
 
 /** Les clés des compétences génériques, que tout personnage possède d'office. */

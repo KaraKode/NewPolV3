@@ -55,10 +55,35 @@ Deux familles restent vides, à dessein : `controleMutations` est peuplée par l
 catalogue des capacités spéciales, et `pouvoirsEffetPolaris` renvoie au chapitre
 Effet Polaris page 248, non transcrit.
 
-- [ ] ❌ **Effet mécanique des marqueurs.** Une compétence limitative doit
-      plafonner celle qu'elle limite, un pré-requis bloquer l'achat, une
-      compétence à progression naturelle gagner un niveau par année passée dans
-      la communauté (jusqu'à +5). Aujourd'hui, ce sont des étiquettes.
+**Deux marqueurs sur quatre agissent maintenant.** `POLARIS.marqueursCompetence`
+porte un drapeau `applique` qui le dit, et la légende de la fiche marque
+« (indicatif) » ceux qui n'ont pas encore d'effet — plutôt que de laisser
+supposer une règle qui ne tourne pas.
+
+- [x] ✅ **Réservée (X)** — la compétence s'apprend depuis un volet « Compétences
+      à apprendre » replié en bas de l'onglet. Elle entre sur la fiche à son
+      niveau de départ, et peut être retirée. Sans ce volet, les 115 compétences
+      réservées du livre étaient inatteignables : le filtre les masquait sans que
+      rien ne puisse les faire venir.
+- [x] ✅ **Pré-requis (†)** — `POLARIS.prerequisManquants(cle, niveauAtteint)` est
+      une fonction **pure**, vérifiable en Node comme le moteur de dés. Elle
+      bloque l'apprentissage, et la fiche signale en rouge une compétence dont
+      les pré-requis ne sont plus remplis, sans jamais raboter une valeur saisie :
+      un meneur reste libre d'accorder une exception.
+- [x] ✅ **Le niveau de départ est un plancher, plus un décor.** Le plancher de
+      stockage descend à -3, la fiche empêche de passer sous le niveau de départ
+      de chaque compétence, et l'assistant crée les personnages au niveau de
+      départ plutôt qu'à zéro. Auparavant, un « -3 » procuré par une mutation
+      était silencieusement écrêté à 0 à la création.
+- [ ] ❌ **Limitative (•)** — sans effet : la règle n'est pas transcrite. Ce que
+      la compétence plafonne, et de combien, reste à saisir.
+- [ ] ❌ **Progression naturelle (PN)** — sans effet : le rythme du gain et son
+      plafond ne sont pas transcrits.
+- [ ] ⚠️ **Ce qu'un pré-requis compare** est une supposition : `POLARIS.basePrerequis`
+      vaut `"globale"`, faute de savoir si « Électronique 5 » désigne cinq de
+      maîtrise ou cinq en valeur globale. Une ligne à changer si c'est l'autre.
+- [ ] ❌ Les pré-requis ne bloquent que l'**apprentissage**, pas la progression :
+      rien n'empêche de monter une compétence dont le pré-requis a été perdu.
 - [ ] ❌ Saisir une spécialisation sur la fiche : le champ existe et s'affiche,
       aucun `input` ne le renseigne
 - [ ] ❌ **La règle de la langue racine n'est pas appliquée.** `divisionLangueRacine`
@@ -366,10 +391,9 @@ mécanisée.
 
 **2. Rendre les compétences utilisables.**
 
-5. Mécanisme d'instanciation des familles (Pilotage, Sciences, Langues…)
-6. Saisie des spécialisations sur la fiche
-7. Effet mécanique des marqueurs, à commencer par les limitatives
-8. Liste déroulante de type génétique
+5. Saisie des spécialisations sur la fiche
+6. Règle des compétences limitatives, puis de la progression naturelle
+7. Liste déroulante de type génétique
 
 **3. Compléter les règles.**
 
@@ -391,6 +415,9 @@ mécanisée.
 
 | Donnée | Bloque | Emplacement |
 |---|---|---|
+| Règle des compétences limitatives | Compétences | — |
+| Rythme de la progression naturelle | Compétences | — |
+| Ce qu'un pré-requis compare (maîtrise ou globale) | Compétences | `basePrerequis` |
 | Pouvoirs liés à l'Effet Polaris | Effet Polaris | `POLARIS.competences` |
 | Répartition des 8 archétypes | Création | `creation.archetypes[…].repartition` |
 | Origines sociales, formations, études | Création | `data/origines.json` |

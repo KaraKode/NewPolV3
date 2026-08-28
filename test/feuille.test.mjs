@@ -311,6 +311,177 @@ const marqueursInvalides = Object.entries(competences)
   .flatMap(([cle, d]) => (d.marqueurs ?? []).filter((m) => !POLARIS.marqueursCompetence[m]).map(() => cle));
 verifier("aucun marqueur inventé", marqueursInvalides, []);
 
+/* -------------------------------------------- */
+/*  Effet mécanique des marqueurs               */
+/* -------------------------------------------- */
+
+console.log("\n— Marqueurs —");
+
+// Chaque marqueur déclare son symbole, son libellé, et surtout s'il AGIT.
+// Sans ce dernier drapeau, la fiche laisserait croire à un effet inexistant.
+const marqueursMalFormes = Object.entries(POLARIS.marqueursCompetence)
+  .filter(([, m]) => !m.symbole || !m.label || typeof m.applique !== "boolean")
+  .map(([c]) => c);
+verifier("chaque marqueur déclare symbole, libellé et effet", marqueursMalFormes, []);
+
+// Deux marqueurs agissent, deux attendent encore leur règle du livre. Ce test
+// est un rappel, pas un verrou : quand la règle arrive, on bascule le drapeau
+// ET ce cas.
+const appliques = Object.entries(POLARIS.marqueursCompetence)
+  .filter(([, m]) => m.applique)
+  .map(([c]) => c)
+  .sort();
+verifier("réservée et pré-requis agissent", appliques, ["prerequis", "reservee"]);
+
+// Les symboles se lisent en légende : deux marqueurs identiques y seraient
+// indiscernables.
+const symboles = Object.values(POLARIS.marqueursCompetence).map((m) => m.symbole);
+verifier("les symboles sont distincts", symboles.length, new Set(symboles).size);
+
+/* --- Niveau de départ et plancher de saisie --- */
+
+// Le plancher de stockage doit accueillir le plus bas niveau de départ du
+// livre : sinon la compétence entre sur la fiche écrêtée à zéro, sans que rien
+// ne le signale.
+const departsCatalogue = Object.values(competences).map((d) => d.maitriseDepart ?? 0);
+verifier(
+  "le plancher de maîtrise accueille le plus bas niveau de départ",
+  POLARIS.bornesMaitrise.min <= Math.min(...departsCatalogue),
+  true
+);
+verifier("aucun niveau de départ ne dépasse le plafond", Math.max(...departsCatalogue) <= POLARIS.bornesMaitrise.max, true);
+
+// Les niveaux de départ procurés par une source — mutation ou type génétique —
+// doivent tenir dans les mêmes bornes : ce sont eux qui atterrissent sur la
+// fiche à la création.
+const departsSources = [
+  ...Object.values(POLARIS.creation.capacitesSpeciales).map((c) => c.competence),
+  ...Object.values(POLARIS.creation.typesGenetiques).map((t) => t.competence)
+]
+  .filter((c) => c && c.maitriseDepart !== undefined)
+  .map((c) => c.maitriseDepart);
+verifier(
+  "les niveaux de départ des sources tiennent dans les bornes",
+  departsSources.filter((n) => n < POLARIS.bornesMaitrise.min || n > POLARIS.bornesMaitrise.max),
+  []
+);
+
+/* --- Pré-requis --- */
+
+// Ce qu'un pré-requis compare est un arbitrage à une seule ligne. Le borner ici
+// évite qu'une faute de frappe le rende silencieusement inopérant : une valeur
+// inconnue ferait lire une propriété inexistante, donc « jamais rempli ».
+verifier(
+  "la base de comparaison des pré-requis est reconnue",
+  ["globale", "maitrise"].includes(POLARIS.basePrerequis),
+  true
+);
+
+// Un pré-requis doit rester atteignable, sinon la compétence est morte : le
+// niveau exigé ne peut pas dépasser le plafond de maîtrise.
+const prerequisInatteignables = Object.entries(competences)
+  .flatMap(([cle, d]) =>
+    (d.prerequis ?? []).filter((p) => p.niveau > POLARIS.bornesMaitrise.max).map(() => cle)
+  );
+verifier("aucun pré-requis hors d'atteinte", prerequisInatteignables, []);
+
+// Une compétence ne peut pas exiger un niveau dans une compétence abstraite :
+// une famille n'a pas de niveau, c'est un porte-manteau.
+const prerequisAbstraits = Object.entries(competences)
+  .flatMap(([cle, d]) =>
+    (d.prerequis ?? []).filter((p) => competences[p.cle]?.abstraite).map(() => cle)
+  );
+verifier("aucun pré-requis ne vise une famille", prerequisAbstraits, []);
+
+// Une compétence exigée doit être atteignable elle-même : exiger un niveau dans
+// une compétence réservée est licite (on l'apprend d'abord), mais exiger une
+// compétence SPÉCIALE le serait moins — celles-là ne s'apprennent pas, elles se
+// reçoivent d'une mutation. Aucune donnée du livre ne le fait à ce jour.
+const prerequisSpeciaux = Object.entries(competences)
+  .flatMap(([cle, d]) => (d.prerequis ?? []).filter((p) => competences[p.cle]?.speciale).map(() => cle));
+verifier("aucun pré-requis ne vise une compétence spéciale", prerequisSpeciaux, []);
+
+/* --- La fonction pure, exercée sur des personnages fictifs --- */
+
+// `POLARIS.prerequisManquants` ne connaît ni Foundry ni l'acteur : on lui passe
+// un « ce personnage sait ceci » et on lit ce qui bloque. C'est le seul morceau
+// du mécanisme des marqueurs qui soit vérifiable hors de Foundry.
+const savoir = (niveaux) => (cle) => (cle in niveaux ? niveaux[cle] : null);
+
+// La nanotechnologie exige DEUX compétences à 10 : Éducation/Culture générale
+// et Physique/Chimie. Un ignorant est donc bloqué sur les deux à la fois — et
+// c'est bien les deux qu'il doit voir, pas la première venue.
+const bloqueSurNano = POLARIS.prerequisManquants("genieNanotechnologie", savoir({}));
+verifier(
+  "un ignorant est bloqué sur les deux pré-requis de la nanotechnologie",
+  bloqueSurNano.map((p) => p.cle).sort(),
+  ["educationCultureGenerale", "sciencesPhysiqueChimie"]
+);
+verifier("le niveau exigé est rappelé", bloqueSurNano[0].niveau, 10);
+verifier("le niveau atteint est nul, pas zéro", bloqueSurNano[0].atteint, null);
+
+// Remplir une exigence sur deux ne débloque rien, et l'exigence restante est
+// nommée : c'est ce que le joueur lit sur la fiche.
+const savantIncomplet = savoir({ sciencesPhysiqueChimie: 10 });
+verifier(
+  "une exigence sur deux ne suffit pas",
+  POLARIS.prerequisManquants("genieNanotechnologie", savantIncomplet).map((p) => p.cle),
+  ["educationCultureGenerale"]
+);
+
+// Le niveau juste en dessous ne suffit pas ; le niveau exact suffit.
+const presque = savoir({ educationCultureGenerale: 10, sciencesPhysiqueChimie: 9 });
+verifier(
+  "9 ne suffit pas là où le livre écrit 10",
+  POLARIS.prerequisManquants("genieNanotechnologie", presque).map((p) => p.cle),
+  ["sciencesPhysiqueChimie"]
+);
+verifier(
+  "le compte exact suffit",
+  POLARIS.prerequisManquants(
+    "genieNanotechnologie",
+    savoir({ educationCultureGenerale: 10, sciencesPhysiqueChimie: 10 })
+  ),
+  []
+);
+
+// Zéro n'est PAS l'absence : un personnage qui possède la compétence à 0 est
+// bloqué par le seuil, pas par l'ignorance. La nuance décide de ce qu'affiche
+// la fiche.
+const aZero = POLARIS.prerequisManquants(
+  "genieNanotechnologie",
+  savoir({ educationCultureGenerale: 10, sciencesPhysiqueChimie: 0 })
+);
+verifier("posséder la compétence à 0 se distingue de ne pas l'avoir", aZero[0].atteint, 0);
+
+// Une compétence sans pré-requis ne bloque jamais.
+verifier("Athlétisme n'exige rien", POLARIS.prerequisManquants("athletisme", savoir({})), []);
+
+// Une compétence inconnue de la config ne fait pas tomber la fonction : la
+// fiche d'un personnage importé d'une version antérieure ne doit pas planter.
+verifier("une clé inconnue ne bloque rien", POLARIS.prerequisManquants("nExistePas", savoir({})), []);
+
+// Plusieurs exigences : toutes celles qui manquent sont rapportées, pas
+// seulement la première — le joueur doit voir tout ce qu'il lui reste à faire.
+const aPlusieurs = Object.entries(competences).find(([, d]) => (d.prerequis ?? []).length > 1);
+if (aPlusieurs) {
+  verifier(
+    `${aPlusieurs[0]} : toutes les exigences manquantes sont rapportées`,
+    POLARIS.prerequisManquants(aPlusieurs[0], savoir({})).length,
+    aPlusieurs[1].prerequis.length
+  );
+} else {
+  console.log("NOTE   aucune compétence du livre n'a plus d'un pré-requis à ce jour");
+}
+
+// La chaîne complète : Éducation ouvre Physique/Chimie, qui ouvre la
+// nanotechnologie. Remplir le maillon du milieu ne suffit pas à ouvrir les deux.
+verifier(
+  "Physique/Chimie reste fermée sans Éducation",
+  POLARIS.prerequisManquants("sciencesPhysiqueChimie", savoir({ sciencesPhysiqueChimie: 10 })).length,
+  1
+);
+
 // La compétence Hybride est réservée aux hybrides : le livre le dit
 // explicitement, et c'est le type génétique qui la procure.
 verifier("Hybride est une compétence spéciale", competences.hybride.speciale, true);

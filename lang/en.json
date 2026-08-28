@@ -569,5 +569,17 @@
   "POLARIS.Competence.armeSpecialeChaine": "Special weapons (chain)",
   "POLARIS.Competence.armeSpecialeLasso": "Special weapons (lasso)",
   "POLARIS.Competence.armeSpecialeFilet": "Special weapons (net)",
-  "POLARIS.Competence.armeSpecialeGrappin": "Special weapons (grapnel)"
+  "POLARIS.Competence.armeSpecialeGrappin": "Special weapons (grapnel)",
+  "POLARIS.Titre.competencesAAcquerir": "Skills to learn",
+  "POLARIS.Aide.competencesAAcquerir": "A restricted skill only appears on the sheet once learned. It starts at its opening level, which the first levels gained go towards clearing.",
+  "POLARIS.Action.acquerirCompetence": "Learn this skill",
+  "POLARIS.Action.oublierCompetence": "Remove this skill",
+  "POLARIS.Dialogue.titreOubli": "Remove skill",
+  "POLARIS.Dialogue.confirmerOubli": "Remove “{nom}” from the sheet? The levels invested will be lost.",
+  "POLARIS.Avertissement.prerequisNonRempli": "{competence} first requires: {manquants}.",
+  "POLARIS.Infobulle.prerequisNonRempli": "Prerequisite unmet: this skill should not be learned yet.",
+  "POLARIS.Infobulle.maitriseDepart": "Level at which the skill will enter the sheet.",
+  "POLARIS.Infobulle.marqueurInerte": "Marker shown for reference only: its rule is not applied by the system yet.",
+  "POLARIS.Champ.marqueurInerte": "(for reference)",
+  "POLARIS.Champ.actions": "Actions"
 }
