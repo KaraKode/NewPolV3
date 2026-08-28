@@ -36,6 +36,11 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
       allerEtape: this.#surAllerEtape,
       ajusterAttribut: this.#surAjusterAttribut,
       ajouterLigne: this.#surAjouterLigne,
+      ajouterDepuisCatalogue: this.#surAjouterDepuisCatalogue,
+      tirerMutation: this.#surTirerMutation,
+      tirerAge: this.#surTirerAge,
+      choisirMethodeAge: this.#surChoisirMethodeAge,
+      tirerOrigine: this.#surTirerOrigine,
       retirerLigne: this.#surRetirerLigne,
       creerPersonnage: this.#surCreerPersonnage
     }
@@ -86,8 +91,19 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
         typeGenetique: "",
         attributs,
         competences,
+        /** Le personnage sait-il manipuler l'effet Polaris ? */
+        manipuleEffetPolaris: false,
+
+        // Expérience préliminaire : l'âge de départ commande tout le reste de
+        // l'étape, puisque les années d'apprentissage s'en déduisent.
+        methodeAge: POLARIS.creation.age.methodeParDefaut,
+        ageDepart: POLARIS.creation.age.methodes.fixe.age,
+        origineGeographique: "",
+        origineSociale: "",
+        formationBase: "",
         // Listes libres : le livre n'ayant pas encore été transcrit, chaque
         // ligne est saisie à la main plutôt que choisie dans un catalogue.
+        mutations: [],
         metiers: [],
         avantages: [],
         desavantages: []
@@ -136,8 +152,45 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
     context.repartitionManquante =
       Boolean(context.archetypeChoisi) && !context.archetypeChoisi.repartition;
 
+    // Expérience préliminaire : tout découle de l'âge de départ.
+    context.age = POLARIS.creation.age;
+    context.anneesApprentissage = POLARIS.creation.anneesApprentissage(this.donnees.ageDepart);
+    context.peutExercerUnMetier = POLARIS.creation.peutExercerUnMetier(this.donnees.ageDepart);
+    context.ageParTirage = this.donnees.methodeAge === "tirage";
+    context.sectionsOrigine = [
+      {
+        cle: "geographiques",
+        champ: "origineGeographique",
+        label: "POLARIS.Champ.origineGeographique",
+        entrees: POLARIS.creation.originesGeographiques,
+        de: POLARIS.creation.desOrigines.geographiques,
+        choisie: this.#origineChoisie("originesGeographiques", this.donnees.origineGeographique)
+      },
+      {
+        cle: "sociales",
+        champ: "origineSociale",
+        label: "POLARIS.Champ.origineSociale",
+        entrees: POLARIS.creation.originesSociales,
+        de: POLARIS.creation.desOrigines.sociales,
+        choisie: this.#origineChoisie("originesSociales", this.donnees.origineSociale)
+      },
+      {
+        cle: "formations",
+        champ: "formationBase",
+        label: "POLARIS.Champ.formationBase",
+        entrees: POLARIS.creation.formations,
+        de: POLARIS.creation.desOrigines.formations,
+        choisie: this.#origineChoisie("formations", this.donnees.formationBase)
+      }
+    ];
+
     context.attributs = this.#detailAttributs();
-    context.capacitesSpeciales = this.#detailCapacitesSpeciales();
+    context.mutations = this.#detailMutations();
+    context.genresMutation = POLARIS.genresMutation;
+    context.catalogue = POLARIS.creation.capacitesSpeciales;
+    context.catalogueMutationsVide = foundry.utils.isEmpty(POLARIS.creation.capacitesSpeciales);
+    context.effetPolaris = POLARIS.creation.effetPolaris;
+    context.coutPolarisInconnu = POLARIS.creation.effetPolaris.cout === null;
     context.budgets = this.#budgets();
 
     return context;
@@ -183,26 +236,25 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
   }
 
   /**
-   * Compétences spéciales achetables. Vide tant que le livre n'est pas
-   * transcrit — l'écran le dit alors franchement plutôt que d'afficher un
-   * tableau creux.
+   * Mutations saisies, avec leur effet réel sur la bourse.
+   *
+   * `effet` porte le signe : une mutation désavantageuse rend un nombre
+   * négatif, puisqu'elle rapporte des points au lieu d'en coûter.
    */
-  #detailCapacitesSpeciales() {
-    const aptitudes = Object.fromEntries(this.#detailAttributs().map((a) => [a.cle, a.aptitude]));
-
-    return POLARIS.competencesSpeciales().map((cle) => {
-      const definition = POLARIS.competences[cle];
-      const base = definition.attributs.reduce((total, a) => total + (aptitudes[a] ?? 0), 0);
-      const maitrise = Number(this.donnees.competences[cle]) || 0;
+  #detailMutations() {
+    return (this.donnees.mutations ?? []).map((mutation, index) => {
+      const signe = POLARIS.genresMutation[mutation.genre]?.signeCout ?? 0;
+      const gratuiteParTirage = Boolean(mutation.tireeAuSort) && signe > 0;
 
       return {
-        cle,
-        label: game.i18n.localize(definition.label),
-        abbrs: definition.attributs.map((a) => game.i18n.localize(POLARIS.attributs[a]?.abbr ?? a)),
-        base,
-        maitrise,
-        globale: base + maitrise,
-        acquise: maitrise > 0
+        index,
+        ...mutation,
+        genre: mutation.genre ?? "neutre",
+        effet: POLARIS.coutMutation(mutation.genre, mutation.cout, mutation.tireeAuSort),
+        gratuiteParTirage,
+        // Le neutre est gratuit par définition, et un avantage tiré au sort
+        // aussi : dans les deux cas le coût n'a plus à être saisi.
+        coutSaisissable: signe !== 0 && !gratuiteParTirage
       };
     });
   }
@@ -238,18 +290,28 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
     // signalé qu'un blocage arbitraire.
     const coutType = POLARIS.creation.typesGenetiques[this.donnees.typeGenetique]?.cout ?? 0;
 
-    const depenseSpeciales = Object.values(this.donnees.competences).reduce(
-      (total, m) => total + (Number(m) || 0),
+    // Les mutations peuvent CRÉDITER la bourse : une mutation désavantageuse
+    // rapporte des points, et ce total est donc légitimement négatif.
+    const coutMutations = (this.donnees.mutations ?? []).reduce(
+      (total, m) => total + POLARIS.coutMutation(m.genre, m.cout, m.tireeAuSort),
       0
     );
 
+    const coutPolaris = this.donnees.manipuleEffetPolaris
+      ? POLARIS.creation.effetPolaris.cout ?? 0
+      : 0;
+
     return {
       pointsCreation: {
-        ...construire(POLARIS.creation.pointsAttributs(), depenseAttributs + coutType),
+        ...construire(
+          POLARIS.creation.pointsAttributs(),
+          depenseAttributs + coutType + coutMutations + coutPolaris
+        ),
         detailAttributs: depenseAttributs,
-        detailType: coutType
+        detailType: coutType,
+        detailMutations: coutMutations,
+        detailPolaris: coutPolaris
       },
-      capacitesSpeciales: construire(POLARIS.creation.points.capacitesSpeciales, depenseSpeciales),
       experiencePreliminaire: construire(
         POLARIS.creation.points.experiencePreliminaire,
         somme(this.donnees.metiers)
@@ -276,7 +338,7 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
 
     // Les listes libres arrivent en objets indexés ({0: …, 1: …}) : on les
     // remet à plat en tableaux, sans quoi les ajouts se mélangeraient.
-    for (const liste of ["metiers", "avantages", "desavantages"]) {
+    for (const liste of ["mutations", "metiers", "avantages", "desavantages"]) {
       if (etendu[liste]) etendu[liste] = Object.values(etendu[liste]);
     }
 
@@ -309,9 +371,62 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
     if (foundry.utils.isEmpty(catalogue)) return;
 
     const choisi = catalogue[this.donnees.typeGenetique];
+
     for (const cle of Object.keys(this.donnees.attributs)) {
-      this.donnees.attributs[cle].modifType = choisi?.modificateurs?.[cle] ?? 0;
+      const modificateur = choisi?.modificateurs?.[cle] ?? 0;
+      this.donnees.attributs[cle].modifType = modificateur;
+
+      // Certains types imposent un plancher : la Présence d'un techno-hybride
+      // encaisse -6 mais ne peut pas descendre sous 3.
+      const plancher = choisi?.minimums?.[cle];
+      if (plancher === undefined) continue;
+
+      const actuel = (Number(this.donnees.attributs[cle].base) || 0) + modificateur;
+      if (actuel < plancher) {
+        this.donnees.attributs[cle].modifType = plancher - (Number(this.donnees.attributs[cle].base) || 0);
+      }
     }
+
+  }
+
+  /**
+   * Retrouve l'origine retenue dans une section, par son identifiant.
+   * @param {string} section  Nom de la liste dans POLARIS.creation.
+   * @param {string} id
+   * @returns {object|null}
+   */
+  #origineChoisie(section, id) {
+    return (POLARIS.creation[section] ?? []).find((o) => o.id === id) ?? null;
+  }
+
+  /**
+   * Niveaux de maîtrise auxquels débutent les compétences spéciales acquises.
+   *
+   * Une même compétence peut être procurée par plusieurs sources à des niveaux
+   * différents — Hybride débute à -3 par la mutation Amphibie et à +3 par le
+   * type hybride naturel. On retient le plus élevé : cumuler deux origines ne
+   * doit jamais desservir le personnage.
+   *
+   * Ces niveaux ne valent qu'à la création. Une fois le personnage créé, la
+   * maîtrise vit sur la fiche et progresse normalement.
+   *
+   * @returns {Record<string, number>}
+   */
+  #niveauxDeDepart() {
+    const niveaux = {};
+
+    const retenir = (competence) => {
+      if (!competence?.cle) return;
+      const depart = competence.maitriseDepart ?? 0;
+      niveaux[competence.cle] = Math.max(niveaux[competence.cle] ?? -Infinity, depart);
+    };
+
+    for (const mutation of this.donnees.mutations ?? []) {
+      retenir(POLARIS.creation.capacitesSpeciales[mutation.capaciteId]?.competence);
+    }
+    retenir(POLARIS.creation.typesGenetiques[this.donnees.typeGenetique]?.competence);
+
+    return niveaux;
   }
 
   /* -------------------------------------------- */
@@ -336,15 +451,30 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
       erreurs.push(game.i18n.localize("POLARIS.Creation.Erreur.nomRequis"));
     }
 
-    // Chaque étape ne surveille que son enveloppe. Les deux premières partagent
-    // la bourse de points de création, le type génétique y puisant aussi.
+    // Chaque étape ne surveille que son enveloppe. Les trois premières partagent
+    // la bourse de points de création : attributs, type génétique et mutations
+    // y puisent tous — et les mutations désavantageuses la regarnissent.
     const enveloppes = {
       capacitesBase: ["pointsCreation"],
       typeGenetique: ["pointsCreation"],
-      capacitesSpeciales: ["capacitesSpeciales"],
+      capacitesSpeciales: ["pointsCreation"],
       experiencePreliminaire: ["experiencePreliminaire"],
       avantages: ["avantages", "desavantages"]
     };
+
+    // Un métier ne s'exerce qu'à partir de 16 ans : un personnage plus jeune
+    // n'a pas pu en tenir un, si séduisant soit-il sur le papier.
+    if (cle === "experiencePreliminaire" && !POLARIS.creation.peutExercerUnMetier(this.donnees.ageDepart)) {
+      const metiers = (this.donnees.metiers ?? []).filter((m) => m.nom?.trim());
+      if (metiers.length) {
+        erreurs.push(
+          game.i18n.format("POLARIS.Creation.Erreur.metierTropJeune", {
+            age: this.donnees.ageDepart,
+            minimum: POLARIS.creation.age.ageMinimumMetier
+          })
+        );
+      }
+    }
 
     for (const nom of enveloppes[cle] ?? []) {
       const budget = budgets[nom];
@@ -417,12 +547,202 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
     this.render();
   }
 
-  /** Ajoute une ligne vierge à une liste libre (métier, avantage, désavantage). */
+  /** Ajoute une ligne vierge à une liste libre (mutation, métier, avantage…). */
   static #surAjouterLigne(event, cible) {
     this.#lireFormulaire();
     const liste = cible.dataset.liste;
 
-    this.donnees[liste] = [...(this.donnees[liste] ?? []), { nom: "", cout: 0, description: "" }];
+    const ligne = { nom: "", cout: 0, description: "" };
+    // Une mutation naît neutre : le genre est un choix, et le neutre est le
+    // seul qui ne déplace pas la bourse tant qu'il n'est pas tranché.
+    if (liste === "mutations") ligne.genre = "neutre";
+
+    this.donnees[liste] = [...(this.donnees[liste] ?? []), ligne];
+    this.render();
+  }
+
+  /**
+   * Ajoute une capacité tirée du catalogue.
+   *
+   * La ligne créée reste modifiable comme les autres : le catalogue préremplit,
+   * il ne verrouille pas. C'est ce qui permet à une table d'adapter une entrée
+   * du livre sans avoir à toucher au fichier JSON.
+   */
+  static #surAjouterDepuisCatalogue(event, cible) {
+    this.#lireFormulaire();
+
+    const capacite = POLARIS.creation.capacitesSpeciales[cible.dataset.capacite];
+    if (!capacite) return;
+
+    this.donnees.mutations = [
+      ...(this.donnees.mutations ?? []),
+      {
+        // L'identifiant voyage avec la ligne : c'est lui qui, une fois posé sur
+        // le trait, débloquera la compétence associée sur la fiche.
+        capaciteId: capacite.id,
+        nom: capacite.nom,
+        genre: capacite.genre,
+        cout: capacite.cout,
+        description: capacite.description
+      }
+    ];
+    this.render();
+  }
+
+  /**
+   * Tire une mutation au hasard sur la table du livre.
+   *
+   * Un 1D100 désigne une ligne. Quand plusieurs capacités partagent cette ligne
+   * — les six résistances naturelles occupent 76-80 —, un second dé les
+   * départage, et une face qui ne désigne rien se relance, comme le prévoit le
+   * livre. La relance est bornée : une table mal saisie ne doit pas figer
+   * l'interface.
+   *
+   * La mutation obtenue est marquée « tirée au sort », ce qui la rend gratuite
+   * si elle est avantageuse.
+   */
+  static async #surTirerMutation() {
+    this.#lireFormulaire();
+
+    if (foundry.utils.isEmpty(POLARIS.creation.capacitesSpeciales)) {
+      return ui.notifications.warn(game.i18n.localize("POLARIS.Creation.Avertissement.tableVide"));
+    }
+
+    const jets = [];
+    let capacite = null;
+
+    for (let essai = 0; essai < 10 && !capacite; essai++) {
+      const de100 = new Roll(POLARIS.deTableMutations);
+      await de100.evaluate();
+      jets.push(de100);
+
+      const candidats = POLARIS.candidatsMutation(de100.total);
+      if (!candidats.length) continue;
+      if (candidats.length === 1) { capacite = candidats[0]; break; }
+
+      // Table imbriquée : on relance le sous-dé tant qu'il tombe sur une face
+      // vide, sans repasser par le 1D100.
+      const formule = candidats[0].deSousTirage ?? "1d6";
+      for (let sousEssai = 0; sousEssai < 10 && !capacite; sousEssai++) {
+        const sousDe = new Roll(formule);
+        await sousDe.evaluate();
+        jets.push(sousDe);
+        capacite = POLARIS.departagerMutation(candidats, sousDe.total);
+      }
+    }
+
+    if (!capacite) {
+      return ui.notifications.warn(game.i18n.localize("POLARIS.Creation.Avertissement.tirageInfructueux"));
+    }
+
+    this.donnees.mutations = [
+      ...(this.donnees.mutations ?? []),
+      {
+        capaciteId: capacite.id,
+        nom: capacite.nom,
+        genre: capacite.genre,
+        cout: capacite.cout,
+        description: capacite.description,
+        tireeAuSort: true
+      }
+    ];
+
+    // Les dés partent en chat : le tirage doit être vérifiable par la table.
+    await ChatMessage.create({
+      content: `<p>${game.i18n.format("POLARIS.Creation.Message.mutationTiree", {
+        resultats: jets.map((r) => r.total).join(" puis "),
+        nom: capacite.nom
+      })}</p>`,
+      rolls: jets,
+      sound: CONFIG.sounds.dice
+    });
+
+    this.render();
+  }
+
+  /**
+   * Bascule entre âge fixe et âge tiré.
+   *
+   * Revenir à la méthode fixe repose l'âge sûr : sans cela, un joueur déçu de
+   * son tirage garderait son résultat en changeant simplement de méthode.
+   */
+  static #surChoisirMethodeAge(event, cible) {
+    this.#lireFormulaire();
+
+    const methode = cible.dataset.methode;
+    if (!POLARIS.creation.age.methodes[methode]) return;
+
+    this.donnees.methodeAge = methode;
+    if (methode === "fixe") this.donnees.ageDepart = POLARIS.creation.age.methodes.fixe.age;
+
+    this.erreurs = [];
+    this.render();
+  }
+
+  /**
+   * Tire l'âge de départ : 14 + 1D4.
+   *
+   * Un seul jet, sans reprise — c'est le prix du pari. Le résultat part en chat
+   * pour que la table en soit témoin.
+   */
+  static async #surTirerAge() {
+    this.#lireFormulaire();
+
+    const { base, de } = POLARIS.creation.age.methodes.tirage;
+    const jet = new Roll(de);
+    await jet.evaluate();
+
+    this.donnees.methodeAge = "tirage";
+    this.donnees.ageDepart = base + jet.total;
+
+    await ChatMessage.create({
+      content: `<p>${game.i18n.format("POLARIS.Creation.Message.ageTire", {
+        base,
+        de: jet.total,
+        age: this.donnees.ageDepart
+      })}</p>`,
+      rolls: [jet],
+      sound: CONFIG.sounds.dice
+    });
+
+    this.erreurs = [];
+    this.render();
+  }
+
+  /**
+   * Tire une origine au sort dans sa section.
+   *
+   * Les fourchettes ne sont pas équiprobables : une petite station occupe 2-7
+   * du 1D10, une grande cité le seul 10. Le tirage reflète donc la démographie
+   * du monde, ce qu'un choix libre ne fait pas.
+   */
+  static async #surTirerOrigine(event, cible) {
+    this.#lireFormulaire();
+
+    const { section, champ } = cible.dataset;
+    const de = POLARIS.creation.desOrigines[section];
+    if (!de) return ui.notifications.warn(game.i18n.localize("POLARIS.Creation.Avertissement.sectionSansDe"));
+
+    const jet = new Roll(de);
+    await jet.evaluate();
+
+    const origine = POLARIS.origineTiree(section, jet.total);
+    if (!origine) {
+      return ui.notifications.warn(game.i18n.localize("POLARIS.Creation.Avertissement.tirageInfructueux"));
+    }
+
+    this.donnees[champ] = origine.id;
+
+    await ChatMessage.create({
+      content: `<p>${game.i18n.format("POLARIS.Creation.Message.origineTiree", {
+        de: jet.total,
+        nom: origine.nom
+      })}</p>`,
+      rolls: [jet],
+      sound: CONFIG.sounds.dice
+    });
+
+    this.erreurs = [];
     this.render();
   }
 
@@ -457,15 +777,26 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
 
   /** Traduit l'état de l'assistant en données d'acteur. */
   #construireActeur() {
+    // Les compétences spéciales débutent au niveau que leur source impose ;
+    // les génériques partent de ce qui a été saisi.
+    const departs = this.#niveauxDeDepart();
+
     const competences = {};
     for (const cle of Object.keys(POLARIS.competences)) {
-      const maitrise = Number(this.donnees.competences[cle]) || 0;
       const speciale = Boolean(POLARIS.competences[cle].speciale);
+      const saisie = Number(this.donnees.competences[cle]) || 0;
+
+      // Une spéciale démarre au niveau que sa source impose ; à défaut, et pour
+      // toutes les génériques, on retient ce qui a été saisi.
+      // (`??` et `||` ne se mélangent pas sans parenthèses : d'où la variable.)
+      const maitrise = speciale ? departs[cle] ?? saisie : saisie;
 
       competences[cle] = {
         maitrise,
-        // Une spéciale n'est acquise que si elle a effectivement été achetée.
-        acquise: speciale ? maitrise > 0 : true
+        // `acquise` est de toute façon recalculé sur la fiche à partir des
+        // traits portés et du type génétique ; on pose ici une valeur cohérente
+        // pour que l'acteur soit correct dès l'instant de sa création.
+        acquise: speciale ? departs[cle] !== undefined : true
       };
     }
 
@@ -488,6 +819,10 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
       return entree ? game.i18n.localize(entree.label) : choix ?? "";
     };
 
+    // Les origines sont des tableaux d'entrées déjà nommées, pas des tables de
+    // clés de traduction : elles se résolvent autrement.
+    const nomOrigine = (section, id) => this.#origineChoisie(section, id)?.nom ?? id ?? "";
+
     return {
       name: this.donnees.name.trim(),
       type: "personnage",
@@ -495,8 +830,17 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
         attributs,
         competences,
         identite: {
+          age: Number(this.donnees.ageDepart) || null,
+          origineGeographique: nomOrigine("originesGeographiques", this.donnees.origineGeographique),
+          origineSociale: nomOrigine("originesSociales", this.donnees.origineSociale),
+          formationBase: nomOrigine("formations", this.donnees.formationBase),
           archetype: libelle("archetypes", this.donnees.archetype),
-          typeGenetique: libelle("typesGenetiques", this.donnees.typeGenetique)
+          typeGenetique: libelle("typesGenetiques", this.donnees.typeGenetique),
+          // La clé, en plus du libellé : c'est elle qui fait vivre les règles
+          // du type sur la fiche (compétence Hybride, profondeur, perception).
+          typeGenetiqueCle: POLARIS.creation.typesGenetiques[this.donnees.typeGenetique]
+            ? this.donnees.typeGenetique
+            : ""
         },
         notes: { equipement: this.#resumeMetiers() }
       }
@@ -504,32 +848,61 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
   }
 
   /**
-   * Les avantages et désavantages deviennent des Items « trait », le système
-   * les gérant déjà ainsi. Leur coût est repris tel quel.
+   * Mutations, avantages et désavantages deviennent des Items « trait », le
+   * système les gérant déjà ainsi — le type d'objet prévoit d'ailleurs
+   * exactement ces quatre genres.
    */
   #construireTraits() {
     const traits = [];
+
+    const ajouter = (nom, genre, cout, description, capaciteId = "") => {
+      if (!nom?.trim()) return;
+      traits.push({
+        name: nom.trim(),
+        type: "trait",
+        system: {
+          genre,
+          cout,
+          description: description ?? "",
+          capaciteId,
+          quantite: 0,
+          encombrement: 0
+        }
+      });
+    };
+
+    // Les mutations portent leur coût signé : le rapport d'une mutation
+    // désavantageuse doit rester lisible sur la fiche. Elles emportent aussi
+    // leur identifiant de catalogue, qui débloquera la compétence associée.
+    for (const mutation of this.donnees.mutations ?? []) {
+      ajouter(
+        mutation.nom,
+        "mutation",
+        POLARIS.coutMutation(mutation.genre, mutation.cout, mutation.tireeAuSort),
+        mutation.description,
+        mutation.capaciteId ?? ""
+      );
+    }
 
     for (const [liste, genre] of [
       ["avantages", "avantage"],
       ["desavantages", "desavantage"]
     ]) {
       for (const ligne of this.donnees[liste] ?? []) {
-        if (!ligne.nom?.trim()) continue;
-
-        traits.push({
-          name: ligne.nom.trim(),
-          type: "trait",
-          system: {
-            genre,
-            cout: Number(ligne.cout) || 0,
-            description: ligne.description ?? "",
-            quantite: 0,
-            encombrement: 0
-          }
-        });
+        ajouter(ligne.nom, genre, Number(ligne.cout) || 0, ligne.description);
       }
     }
+
+    // La capacité à manipuler l'effet Polaris est elle aussi un trait, du genre
+    // qui lui est réservé.
+    if (this.donnees.manipuleEffetPolaris) {
+      ajouter(
+        game.i18n.localize(POLARIS.creation.effetPolaris.label),
+        "polaris",
+        POLARIS.creation.effetPolaris.cout ?? 0
+      );
+    }
+
     return traits;
   }
 
@@ -575,8 +948,15 @@ export class PolarisCreationWizard extends HandlebarsApplicationMixin(Applicatio
       if (!declencheur) return;
 
       this.#lireFormulaire();
-      if (declencheur.dataset.recharge === "archetype") this.#appliquerArchetype();
-      this.#appliquerTypeGenetique();
+
+      // Seuls l'archétype et le type génétique redistribuent des valeurs. Les
+      // autres déclencheurs — genre d'une mutation, capacité Polaris — ne font
+      // que déplacer la bourse, mais imposent un rendu complet parce qu'ils
+      // changent la structure de l'écran (champ grisé, ligne recolorée).
+      const quoi = declencheur.dataset.recharge;
+      if (quoi === "archetype") this.#appliquerArchetype();
+      if (quoi === "archetype" || quoi === "typeGenetique") this.#appliquerTypeGenetique();
+
       this.render();
     });
   }

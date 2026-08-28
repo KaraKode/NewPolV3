@@ -78,4 +78,28 @@
     {{{biographieEnrichie}}}
   </prose-mirror>
 
+  {{!-- Aide-mémoire, reprise du bas de la feuille officielle. Purement
+        informative : rien ici n'est saisi ni calculé pour ce personnage. --}}
+  <h2 class="polaris-titre-section">{{localize "POLARIS.Champ.tableMarges"}}</h2>
+  <p class="polaris-aide">{{localize "POLARIS.Aide.tableMarges"}}</p>
+
+  <div class="polaris-defilement-horizontal">
+    <table class="polaris-table polaris-table-marges">
+      <tbody>
+        <tr>
+          <th class="polaris-colonne-intitule">{{localize "POLARIS.Champ.margeCourt"}}</th>
+          {{#each tableMarges as |tranche|}}
+            <td>{{tranche.libelle}}</td>
+          {{/each}}
+        </tr>
+        <tr>
+          <th class="polaris-colonne-intitule">{{localize "POLARIS.Champ.modificateur"}}</th>
+          {{#each tableMarges as |tranche|}}
+            <td class="polaris-valeur-forte">±{{tranche.mod}}</td>
+          {{/each}}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
 </section>

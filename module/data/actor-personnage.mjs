@@ -19,6 +19,14 @@ export class PolarisPersonnage extends PolarisActorBase {
     schema.identite = new fields.SchemaField({
       archetype: new fields.StringField({ required: false, blank: true }),
       typeGenetique: new fields.StringField({ required: false, blank: true }),
+      // Clé du type génétique, en plus de son libellé affichable : c'est elle
+      // qui permet de retrouver la compétence Hybride qu'il procure et ses
+      // règles propres (profondeur, perception sous-marine).
+      typeGenetiqueCle: new fields.StringField({
+        required: false,
+        blank: true,
+        choices: () => ["", ...Object.keys(POLARIS.creation.typesGenetiques)]
+      }),
       age: new fields.NumberField({ required: false, nullable: true, integer: true, initial: null }),
       sexe: new fields.StringField({ required: false, blank: true }),
       feconde: new fields.BooleanField({ required: true, initial: true }),
@@ -94,6 +102,8 @@ export class PolarisPersonnage extends PolarisActorBase {
   prepareDerivedData() {
     super.prepareDerivedData();
 
+    const sourcesCompetences = this.#sourcesDeCompetences();
+
     for (const [cle, competence] of Object.entries(this.competences)) {
       const definition = POLARIS.competences[cle];
       if (!definition) continue;
@@ -107,12 +117,95 @@ export class PolarisPersonnage extends PolarisActorBase {
         (m) => POLARIS.marqueursCompetence[m]?.symbole ?? ""
       );
 
-      competence.base = definition.attributs.reduce(
-        (total, a) => total + (this.attributs[a]?.aptitude ?? 0),
-        0
-      );
+      // Une compétence spéciale est acquise si et seulement si quelque chose y
+      // donne accès — un trait porté ou le type génétique. Le lien est dérivé,
+      // jamais stocké : retirer la mutation retire la compétence.
+      const source = sourcesCompetences[cle];
+      if (definition.speciale) {
+        competence.acquise = Boolean(source);
+        competence.sources = source?.sources ?? [];
+      }
+
+      // La base somme les aptitudes des deux attributs, puis applique le
+      // modificateur propre à la compétence — le « -3 » de « CON/COO -3 ».
+      competence.modificateur = definition.modificateur ?? 0;
+      competence.base =
+        definition.attributs.reduce((total, a) => total + (this.attributs[a]?.aptitude ?? 0), 0) +
+        competence.modificateur;
+
+      // Certaines compétences ne peuvent jamais dépasser un plafond : un
+      // Amphibie reste bloqué à 0 de maîtrise, si doué soit-il.
+      // Le plafond vient de la source la plus favorable, pas de la compétence :
+      // un Amphibie est bridé au niveau 0, un géno-hybride ne l'est pas, et la
+      // même compétence Hybride sert aux deux.
+      competence.maitriseMax = source ? source.maitriseMax : definition.maitriseMax ?? null;
+      if (competence.maitriseMax !== null && competence.maitrise > competence.maitriseMax) {
+        competence.maitrise = competence.maitriseMax;
+      }
+
+      // Plafond effectif du champ de saisie. Calculé ici plutôt que dans le
+      // template : un plafond de 0 est légitime, et le distinguer d'une absence
+      // de plafond en Handlebars demanderait une acrobatie.
+      competence.maitriseMaxEffective = competence.maitriseMax ?? POLARIS.bornesMaitrise.max;
+
       competence.globale = competence.base + competence.maitrise;
     }
+  }
+
+  /**
+   * Identifiants des capacités spéciales que le personnage porte réellement,
+   * lus sur ses traits.
+   * @returns {Set<string>}
+   */
+  #capacitesPortees() {
+    const portees = new Set();
+    for (const item of this.parent?.items ?? []) {
+      if (item.type !== "trait") continue;
+      if (item.system.capaciteId) portees.add(item.system.capaciteId);
+    }
+    return portees;
+  }
+
+  /**
+   * Recense, pour chaque compétence spéciale, ce qui y donne accès.
+   *
+   * Une même compétence peut venir de plusieurs sources aux règles
+   * différentes : la compétence Hybride est procurée par la mutation Amphibie
+   * — plafonnée au niveau 0 — comme par les trois types génétiques hybrides,
+   * qui eux ne la plafonnent pas. On retient donc la règle la PLUS FAVORABLE :
+   * un Amphibie devenu géno-hybride n'est plus bridé par sa mutation.
+   *
+   * @returns {Record<string, {maitriseMax: number|null, sources: string[]}>}
+   */
+  #sourcesDeCompetences() {
+    const sources = {};
+
+    const ajouter = (competence, origine) => {
+      if (!competence?.cle) return;
+
+      const existante = sources[competence.cle];
+      const plafond = competence.maitriseMax ?? null;
+
+      if (!existante) {
+        sources[competence.cle] = { maitriseMax: plafond, sources: [origine] };
+        return;
+      }
+
+      existante.sources.push(origine);
+      // `null` signifie « aucun plafond » : il l'emporte sur n'importe quel
+      // chiffre, et entre deux chiffres c'est le plus haut qui gagne.
+      if (existante.maitriseMax === null || plafond === null) existante.maitriseMax = null;
+      else existante.maitriseMax = Math.max(existante.maitriseMax, plafond);
+    };
+
+    for (const id of this.#capacitesPortees()) {
+      ajouter(POLARIS.creation.capacitesSpeciales[id]?.competence, id);
+    }
+
+    const type = POLARIS.creation.typesGenetiques[this.identite?.typeGenetiqueCle];
+    if (type?.competence) ajouter(type.competence, this.identite.typeGenetiqueCle);
+
+    return sources;
   }
 
   /**

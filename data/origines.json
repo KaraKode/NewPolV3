@@ -1,0 +1,123 @@
+{
+  "_format": 1,
+
+  "_aide": [
+    "Origines et formations de l'étape « Expérience préliminaire ».",
+    "",
+    "Trois sections, remplies au fur et à mesure : geographiques, sociales,",
+    "formations. Chacune se choisit librement ou se tire au dé.",
+    "",
+    "Champs d'une entrée :",
+    "  id           obligatoire, unique, sans espace ni accent",
+    "  nom          obligatoire, le libellé affiché",
+    "  tirage       [min, max] sur le dé de la section, facultatif",
+    "  description  texte libre",
+    "  competences  niveaux accordés d'office (voir plus bas)",
+    "  choix        alternatives laissées au joueur (voir plus bas)",
+    "",
+    "----------------------------------------------------------------------",
+    "COMPÉTENCES ACCORDÉES",
+    "",
+    "  competences: [ { cle, specialisation, niveau }, … ]",
+    "",
+    "  cle            clé dans POLARIS.competences",
+    "  specialisation précision entre parenthèses dans le livre, ex. « Scooters",
+    "                 sous-marins ». Deux entrées peuvent viser la même clé avec",
+    "                 des spécialisations différentes.",
+    "  niveau         niveaux de maîtrise accordés",
+    "",
+    "  choix: [ { niveau, options: [ { cle, specialisation }, … ] } ]",
+    "",
+    "  Pour les « A ou B au choix du joueur ». L'assistant fera choisir.",
+    "",
+    "----------------------------------------------------------------------",
+    "ÉTAT DE LA TRANSCRIPTION",
+    "",
+    "Source : livre de base, chapitre 2.1, étape « Expérience préliminaire ».",
+    "",
+    "ATTENTION : ces entrées citent des compétences qui ne sont PAS encore",
+    "déclarées dans module/config.mjs, faute de connaître leurs couples",
+    "d'attributs. Le système les recense au démarrage et les journalise dans la",
+    "console plutôt que de les inventer. Tant qu'un couple manque, la compétence",
+    "n'apparaît pas sur la fiche et son niveau n'est pas appliqué."
+  ],
+
+  "_deGeographiques": "1d10",
+
+  "geographiques": [
+    {
+      "id": "navide-nomade",
+      "nom": "Navide nomade",
+      "tirage": [1, 1],
+      "description": "Le personnage a grandi à bord d'un navide nomade, sans port d'attache.",
+      "competences": [
+        { "cle": "manoeuvresSousMarines", "niveau": 1 },
+        { "cle": "manoeuvreArmure", "specialisation": "Armures sous-marines", "niveau": 1 },
+        { "cle": "pilotage", "specialisation": "Navire léger", "niveau": 1 },
+        { "cle": "pilotage", "specialisation": "Scooters sous-marins", "niveau": 2 },
+        { "cle": "mecanique", "specialisation": "Exo-armure ou navide", "niveau": 1 },
+        { "cle": "connaissanceMilieu", "specialisation": "Océans", "niveau": 1 }
+      ]
+    },
+    {
+      "id": "petite-station",
+      "nom": "Petite station",
+      "tirage": [2, 7],
+      "description": "Le personnage vient d'une petite station, où chacun met la main à tout.",
+      "competences": [
+        { "cle": "manoeuvresSousMarines", "niveau": 1 },
+        { "cle": "manoeuvreArmure", "specialisation": "Armures sous-marines", "niveau": 1 },
+        { "cle": "pilotage", "specialisation": "Scooters sous-marins", "niveau": 2 },
+        { "cle": "electronique", "niveau": 1 }
+      ],
+      "choix": [
+        {
+          "niveau": 2,
+          "options": [
+            { "cle": "aquacultureElevage" },
+            { "cle": "mecanique" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "station-moyenne",
+      "nom": "Station de taille moyenne",
+      "tirage": [8, 9],
+      "description": "Une station assez grande pour avoir une administration, et assez petite pour qu'on y touche encore aux machines.",
+      "competences": [
+        { "cle": "manoeuvresSousMarines", "niveau": 1 },
+        { "cle": "bureaucratie", "niveau": 1 },
+        { "cle": "manoeuvreArmure", "specialisation": "Armures sous-marines", "niveau": 1 },
+        { "cle": "pilotage", "specialisation": "Scooters sous-marins", "niveau": 1 },
+        {
+          "cle": "connaissanceNations",
+          "specialisation": "État dont dépend la station, ou état le plus proche si elle est indépendante",
+          "niveau": 2
+        },
+        { "cle": "electronique", "niveau": 1 }
+      ]
+    },
+    {
+      "id": "grande-cite",
+      "nom": "Grande cité",
+      "tirage": [10, 10],
+      "description": "Le personnage a grandi dans une grande cité : beaucoup d'administration, peu de mécanique.",
+      "competences": [
+        { "cle": "bureaucratie", "niveau": 2 },
+        {
+          "cle": "connaissanceNations",
+          "specialisation": "État dont dépend la cité",
+          "niveau": 3
+        },
+        { "cle": "educationCultureGenerale", "niveau": 2 }
+      ]
+    }
+  ],
+
+  "_deSociales": null,
+  "sociales": [],
+
+  "_deFormations": null,
+  "formations": []
+}

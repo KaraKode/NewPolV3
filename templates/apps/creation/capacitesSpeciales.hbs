@@ -1,62 +1,198 @@
 {{!-- Étape 3 — Les capacités spéciales.
 
-     Contrairement aux compétences génériques, elles s'achètent, et n'apparaîtront
-     sur la fiche que si elles ont effectivement été acquises. --}}
+     Elles déterminent si le personnage porte des mutations et s'il sait
+     manipuler l'effet Polaris. Elles puisent dans la MÊME bourse de points de
+     création que les attributs et le type génétique — et une mutation
+     désavantageuse la regarnit au lieu de la vider. --}}
 
 <p class="polaris-aide">{{localize "POLARIS.Creation.Aide.capacitesSpeciales"}}</p>
 
 <div class="polaris-creation-compteur">
   <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
-  <strong data-budget="capacitesSpeciales"
-          class="{{#if budgets.capacitesSpeciales.depasse}}polaris-budget-depasse{{/if}}">
-    {{#if budgets.capacitesSpeciales.illimite}}
-      {{budgets.capacitesSpeciales.depense}}
-    {{else}}
-      {{budgets.capacitesSpeciales.depense}} / {{budgets.capacitesSpeciales.budget}}
-    {{/if}}
+  <strong data-budget="pointsCreation"
+          class="{{#if budgets.pointsCreation.depasse}}polaris-budget-depasse{{/if}}">
+    {{budgets.pointsCreation.depense}} / {{budgets.pointsCreation.budget}}
   </strong>
-  {{#if budgets.capacitesSpeciales.illimite}}
-    <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
-  {{/if}}
+
+  <span class="polaris-creation-detail-bourse">
+    ({{localize "POLARIS.Champ.attributs"}} {{budgets.pointsCreation.detailAttributs}}
+    {{#if budgets.pointsCreation.detailType}}
+      + {{localize "POLARIS.Champ.typeGenetique"}} {{budgets.pointsCreation.detailType}}
+    {{/if}}
+    {{#if budgets.pointsCreation.detailMutations}}
+      + {{localize "POLARIS.Creation.mutations"}} {{polarisSigne budgets.pointsCreation.detailMutations}}
+    {{/if}}
+    {{#if budgets.pointsCreation.detailPolaris}}
+      + {{localize "POLARIS.Creation.effetPolaris"}} {{budgets.pointsCreation.detailPolaris}}
+    {{/if}})
+  </span>
 </div>
 
-{{#if capacitesSpeciales.length}}
-  <table class="polaris-table polaris-table-creation">
-    <thead>
-      <tr>
-        <th>{{localize "POLARIS.Champ.competence"}}</th>
-        <th class="polaris-colonne-attributs">{{localize "POLARIS.Champ.attributsCourt"}}</th>
-        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.base"}}</th>
-        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.maitriseCourt"}}</th>
-        <th class="polaris-colonne-nombre">{{localize "POLARIS.Champ.globale"}}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each capacitesSpeciales as |capacite|}}
-        <tr class="{{#unless capacite.acquise}}polaris-ligne-inactive{{/unless}}">
-          <td>{{capacite.label}}</td>
-          <td class="polaris-colonne-attributs">
-            {{#each capacite.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
-          </td>
-          <td class="polaris-colonne-nombre">{{capacite.base}}</td>
-          <td class="polaris-colonne-nombre">
-            <input type="number"
-                   name="competences.{{capacite.cle}}"
-                   value="{{capacite.maitrise}}"
-                   min="{{@root.config.bornesMaitrise.min}}"
-                   max="{{@root.config.bornesMaitrise.max}}"
-                   data-dtype="Number" />
-          </td>
-          <td class="polaris-colonne-nombre polaris-valeur-forte">{{capacite.globale}}</td>
-        </tr>
-      {{/each}}
-    </tbody>
-  </table>
-{{else}}
-  {{!-- Aucune compétence n'est encore marquée `speciale` dans la config : on le
-        dit franchement plutôt que d'afficher un tableau vide. --}}
+{{!-- Mutations --}}
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Creation.mutations"}}</h3>
+
+{{#if catalogueMutationsVide}}
   <p class="polaris-avertissement">
     <i class="fa-solid fa-triangle-exclamation"></i>
-    {{localize "POLARIS.Creation.Avertissement.aucuneSpeciale"}}
+    {{localize "POLARIS.Creation.Avertissement.catalogueMutationsVide"}}
+  </p>
+{{else}}
+  {{!-- Le catalogue préremplit une ligne, il ne la verrouille pas : la table
+        reste libre d'adapter une entrée du livre sans toucher au JSON. --}}
+  <div class="polaris-creation-catalogue">
+    <span class="polaris-creation-catalogue-titre">
+      {{localize "POLARIS.Creation.depuisCatalogue"}}
+    </span>
+    {{#each catalogue as |capacite|}}
+      <button type="button"
+              class="polaris-creation-pastille polaris-mutation-{{capacite.genre}}"
+              data-action="ajouterDepuisCatalogue"
+              data-capacite="{{capacite.id}}"
+              data-tooltip="{{capacite.description}}">
+        <i class="fa-solid fa-plus"></i>
+        {{capacite.nom}}
+        <em>{{#if capacite.cout}}{{capacite.cout}}{{else}}—{{/if}}</em>
+      </button>
+    {{/each}}
+  </div>
+{{/if}}
+
+<table class="polaris-table polaris-table-creation">
+  <thead>
+    <tr>
+      <th>{{localize "POLARIS.Creation.mutation"}}</th>
+      <th class="polaris-colonne-genre">{{localize "POLARIS.Champ.genre"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.cout"}}</th>
+      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.effetBourse"}}</th>
+      <th>{{localize "POLARIS.Champ.description"}}</th>
+      <th class="polaris-colonne-action"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each mutations as |mutation|}}
+      <tr class="polaris-mutation-{{mutation.genre}}">
+        <td>
+          <input type="text" name="mutations.{{mutation.index}}.nom" value="{{mutation.nom}}"
+                 placeholder="{{localize 'POLARIS.Creation.placeholderMutation'}}" />
+
+          {{#if mutation.tireeAuSort}}
+            <span class="polaris-marqueur-tirage"
+                  data-tooltip="{{localize 'POLARIS.Infobulle.tireeAuSort'}}">
+              <i class="fa-solid fa-dice"></i>
+            </span>
+          {{/if}}
+
+          {{!-- L'identifiant de catalogue et l'origine du tirage doivent
+                survivre à la navigation, sinon la compétence associée ne serait
+                jamais débloquée et la gratuité serait perdue. Ils restent dans
+                la cellule : un contenu libre dans <tbody> serait déplacé. --}}
+          <input type="hidden" name="mutations.{{mutation.index}}.capaciteId"
+                 value="{{mutation.capaciteId}}" />
+          <input type="hidden" name="mutations.{{mutation.index}}.tireeAuSort"
+                 value="{{#if mutation.tireeAuSort}}true{{else}}false{{/if}}"
+                 data-dtype="Boolean" />
+        </td>
+
+        <td class="polaris-colonne-genre">
+          {{!-- Changer de genre change le sens du coût : un rendu complet est
+                nécessaire pour recalculer la bourse et griser le champ. --}}
+          <select name="mutations.{{mutation.index}}.genre" data-recharge="mutation">
+            {{#each @root.genresMutation as |genre cle|}}
+              <option value="{{cle}}" {{#if (eq cle ../mutation.genre)}}selected{{/if}}>
+                {{localize genre.label}}
+              </option>
+            {{/each}}
+          </select>
+        </td>
+
+        <td class="polaris-colonne-nombre">
+          {{#if mutation.coutSaisissable}}
+            <input type="number" name="mutations.{{mutation.index}}.cout" value="{{mutation.cout}}"
+                   min="0" data-dtype="Number" />
+          {{else}}
+            {{!-- Gratuite : soit neutre par définition, soit avantageuse obtenue
+                  au hasard — le livre ne fait payer que ce que l'on choisit. --}}
+            <span class="polaris-creation-gratuit">
+              {{#if mutation.gratuiteParTirage}}
+                {{localize "POLARIS.Creation.gratuiteParTirage"}}
+              {{else}}
+                {{localize "POLARIS.Creation.gratuite"}}
+              {{/if}}
+            </span>
+            {{!-- Le coût du livre reste stocké : il redeviendra dû si la ligne
+                  cesse d'être un tirage. --}}
+            <input type="hidden" name="mutations.{{mutation.index}}.cout"
+                   value="{{mutation.cout}}" data-dtype="Number" />
+          {{/if}}
+        </td>
+
+        <td class="polaris-colonne-nombre polaris-valeur-forte">
+          {{polarisSigne mutation.effet}}
+        </td>
+
+        <td>
+          <input type="text" name="mutations.{{mutation.index}}.description"
+                 value="{{mutation.description}}" />
+        </td>
+
+        <td class="polaris-colonne-action">
+          <button type="button" data-action="retirerLigne" data-liste="mutations"
+                  data-index="{{mutation.index}}"
+                  data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    {{else}}
+      <tr><td colspan="6" class="polaris-vide">{{localize "POLARIS.Creation.aucuneMutation"}}</td></tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<div class="polaris-creation-actions-mutations">
+  <button type="button" class="polaris-bouton-ajout-large" data-action="ajouterLigne" data-liste="mutations">
+    <i class="fa-solid fa-plus"></i>
+    {{localize "POLARIS.Creation.ajouterMutation"}}
+  </button>
+
+  {{!-- Le tirage n'est pas qu'un gadget : une mutation avantageuse obtenue au
+        hasard ne coûte rien, là où la choisir se paie. --}}
+  <button type="button" class="polaris-bouton-ajout-large polaris-bouton-tirage"
+          data-action="tirerMutation"
+          data-tooltip="{{localize 'POLARIS.Infobulle.tirerMutation'}}">
+    <i class="fa-solid fa-dice"></i>
+    {{localize "POLARIS.Creation.tirerMutation"}}
+  </button>
+</div>
+
+<p class="polaris-legende">
+  {{#each genresMutation as |genre cle|}}
+    <span class="polaris-legende-item">
+      {{localize genre.label}} —
+      {{#if (eq genre.signeCout 1)}}{{localize "POLARIS.Creation.coutePC"}}{{/if}}
+      {{#if (eq genre.signeCout 0)}}{{localize "POLARIS.Creation.gratuite"}}{{/if}}
+      {{#if (eq genre.signeCout -1)}}{{localize "POLARIS.Creation.rapportePC"}}{{/if}}
+    </span>
+  {{/each}}
+</p>
+
+{{!-- Effet Polaris --}}
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Creation.effetPolaris"}}</h3>
+
+<label class="polaris-case-libelle polaris-creation-polaris">
+  <input type="checkbox"
+         name="manipuleEffetPolaris"
+         data-recharge="polaris"
+         {{#if donnees.manipuleEffetPolaris}}checked{{/if}} />
+  <span>{{localize "POLARIS.Creation.manipuleEffetPolaris"}}</span>
+  {{#unless coutPolarisInconnu}}
+    <span class="polaris-creation-detail-bourse">({{effetPolaris.cout}})</span>
+  {{/unless}}
+</label>
+
+{{#if coutPolarisInconnu}}
+  <p class="polaris-avertissement">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    {{localize "POLARIS.Creation.Avertissement.coutPolarisInconnu"}}
   </p>
 {{/if}}

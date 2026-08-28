@@ -58,8 +58,103 @@ Hooks.once("init", function () {
   enregistrerFiches();
   enregistrerHelpers();
 
-  return prechargerTemplates();
+  // Foundry attend la promesse rendue par `init` : le catalogue est donc prêt
+  // avant le premier rendu d'une fiche ou de l'assistant.
+  return Promise.all([prechargerTemplates(), chargerCapacitesSpeciales(), chargerOrigines()]);
 });
+
+/* -------------------------------------------- */
+/*  Catalogue des origines                      */
+/* -------------------------------------------- */
+
+/**
+ * Charge `data/origines.json` dans la config.
+ *
+ * Comme le catalogue des capacités, ce fichier est rempli à la main : ni son
+ * absence ni une coquille ne doivent empêcher le système de démarrer.
+ */
+async function chargerOrigines() {
+  const sections = ["geographiques", "sociales", "formations"];
+  const cibles = {
+    geographiques: "originesGeographiques",
+    sociales: "originesSociales",
+    formations: "formations"
+  };
+
+  try {
+    const brut = await foundry.utils.fetchJsonWithTimeout(POLARIS.CHEMIN_ORIGINES);
+
+    for (const section of sections) {
+      const { origines, erreurs } = POLARIS.indexerOrigines(brut?.[section]);
+      POLARIS.creation[cibles[section]] = origines;
+      POLARIS.creation.desOrigines[section] = brut?.[`_de${section[0].toUpperCase()}${section.slice(1)}`] ?? null;
+
+      for (const erreur of erreurs) {
+        console.warn(`Polaris V3 | origines.json (${section}) — ${erreur}`);
+      }
+    }
+
+    const total = sections.reduce((n, s) => n + POLARIS.creation[cibles[s]].length, 0);
+    console.log(`Polaris V3 | ${total} origine(s) chargée(s)`);
+
+    // Les compétences citées sans être déclarées sont annoncées nommément :
+    // c'est la liste exacte de ce qu'il reste à saisir dans config.mjs.
+    if (POLARIS.competencesAConfirmer.size) {
+      console.warn(
+        `Polaris V3 | ${POLARIS.competencesAConfirmer.size} compétence(s) citées par les origines ` +
+          "mais absentes de POLARIS.competences — leurs niveaux ne seront pas appliqués : " +
+          [...POLARIS.competencesAConfirmer].join(", ")
+      );
+    }
+  } catch (erreur) {
+    console.error(
+      "Polaris V3 | Impossible de lire data/origines.json. " +
+        "L'étape d'expérience préliminaire restera en saisie libre.",
+      erreur
+    );
+  }
+}
+
+/* -------------------------------------------- */
+/*  Catalogue des capacités spéciales           */
+/* -------------------------------------------- */
+
+/**
+ * Charge `data/capacites-speciales.json` dans la config.
+ *
+ * Le fichier est rempli à la main : ni son absence ni une coquille de syntaxe
+ * ne doivent empêcher le système de démarrer. On journalise et on continue avec
+ * un catalogue vide, auquel cas l'assistant bascule en saisie libre.
+ */
+async function chargerCapacitesSpeciales() {
+  try {
+    const brut = await foundry.utils.fetchJsonWithTimeout(POLARIS.CHEMIN_CAPACITES);
+    const { capacites, erreurs } = POLARIS.indexerCapacites(brut);
+
+    POLARIS.creation.capacitesSpeciales = capacites;
+
+    // Les compétences apportées par les capacités rejoignent la liste générale
+    // avant que le premier DataModel ne construise son schéma : c'est ce qui
+    // les fait exister sur les personnages qui portent la capacité.
+    const competences = POLARIS.enregistrerCompetencesDeCapacites(capacites);
+
+    for (const erreur of erreurs) {
+      console.warn(`Polaris V3 | capacites-speciales.json — ${erreur}`);
+    }
+    console.log(
+      `Polaris V3 | ${Object.keys(capacites).length} capacité(s) spéciale(s) chargée(s)` +
+        (competences.length ? `, dont ${competences.length} compétence(s) associée(s)` : "") +
+        (erreurs.length ? ` — ${erreurs.length} entrée(s) écartée(s)` : "")
+    );
+  } catch (erreur) {
+    POLARIS.creation.capacitesSpeciales = {};
+    console.error(
+      "Polaris V3 | Impossible de lire data/capacites-speciales.json. " +
+        "L'assistant restera en saisie libre.",
+      erreur
+    );
+  }
+}
 
 /* -------------------------------------------- */
 /*  Réglages de monde                           */
@@ -190,6 +285,16 @@ function enregistrerHelpers() {
   /** Vrai si a est inférieur ou égal à b — sert à cocher les n premières cases. */
   Handlebars.registerHelper("polarisJusqua", (a, b) => Number(a) <= Number(b));
 
+  /**
+   * Nombre d'entrées d'un objet ou d'un tableau.
+   * Sert aux catalogues encore vides : le template bascule alors en saisie
+   * libre plutôt que d'afficher une liste déroulante sans option.
+   */
+  Handlebars.registerHelper("polarisTaille", (valeur) => {
+    if (Array.isArray(valeur)) return valeur.length;
+    return valeur ? Object.keys(valeur).length : 0;
+  });
+
   // Foundry fournit `eq` et `not` depuis la V12, mais on ne les écrase pas et on
   // les ajoute seulement s'ils manquent, pour rester robuste aux versions.
   if (!Handlebars.helpers.eq) {
@@ -235,7 +340,33 @@ Hooks.on("renderActorDirectory", (app, element) => {
   entete?.prepend(bouton);
 });
 
+/**
+ * Vérifie qu'un fichier de langue a bien été chargé.
+ *
+ * Foundry rejette un fichier de langue ENTIER à la moindre incohérence de
+ * structure — par exemple si une clé est à la fois une feuille et le parent
+ * d'une autre, « X » et « X.description » se disputant la même place après
+ * `expandObject`. Le symptôme est alors spectaculaire mais muet : toute
+ * l'interface affiche des clés brutes, sans autre indice qu'une ligne perdue
+ * dans la console. Autant le dire franchement.
+ */
+function verifierTraductions() {
+  const temoin = "POLARIS.Champ.nom";
+  if (game.i18n.localize(temoin) !== temoin) return;
+
+  const message =
+    "Polaris V3 | Les traductions du système ne sont pas chargées : " +
+    "l'interface affichera des clés brutes. Cherchez « Unable to parse localization file » " +
+    "plus haut dans cette console — une clé est probablement à la fois une valeur " +
+    "et un préfixe (« X » et « X.description »).";
+
+  console.error(message);
+  ui.notifications?.error(message, { permanent: true, console: false });
+}
+
 Hooks.once("ready", function () {
+  verifierTraductions();
+
   if (!POLARIS.tableAptitudeNaturelle) {
     console.warn(
       "Polaris V3 | La table des Aptitudes naturelles n'est pas renseignée : " +

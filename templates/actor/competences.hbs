@@ -49,14 +49,24 @@
               {{#each competence.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
             </td>
 
-            <td class="polaris-colonne-nombre">{{competence.base}}</td>
+            <td class="polaris-colonne-nombre">
+              {{competence.base}}
+              {{#if competence.modificateur}}
+                {{!-- Modificateur propre à la compétence, déjà compris dans la
+                      base : l'afficher évite de croire à une erreur de calcul. --}}
+                <span class="polaris-modificateur-competence"
+                      data-tooltip="{{localize 'POLARIS.Infobulle.modificateurCompetence'}}">
+                  {{polarisSigne competence.modificateur}}
+                </span>
+              {{/if}}
+            </td>
 
             <td class="polaris-colonne-nombre">
               <input type="number"
                      name="system.competences.{{competence.cle}}.maitrise"
                      value="{{competence.maitrise}}"
                      min="{{@root.config.bornesMaitrise.min}}"
-                     max="{{@root.config.bornesMaitrise.max}}"
+                     max="{{competence.maitriseMaxEffective}}"
                      {{#unless @root.modifiable}}disabled{{/unless}} />
             </td>
 

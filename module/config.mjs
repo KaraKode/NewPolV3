@@ -895,8 +895,156 @@ POLARIS.creation.pointsAttributs = function () {
   return POLARIS.reglagesAmbiance().pointsAttributs;
 };
 
+/* -------------------------------------------- */
+/*  Origines et formations                      */
+/* -------------------------------------------- */
+
+/** Chemin du catalogue des origines, relatif à la racine du système. */
+POLARIS.CHEMIN_ORIGINES = `systems/${POLARIS.ID}/data/origines.json`;
+
 /**
- * ⚠️ À VÉRIFIER — Budgets des quatre autres enveloppes.
+ * Dés de tirage de chaque section, remplis au chargement depuis le fichier.
+ * `null` tant que la section n'a pas de dé déclaré : elle ne se tire pas.
+ */
+POLARIS.creation.desOrigines = { geographiques: null, sociales: null, formations: null };
+
+/**
+ * Compétences citées par les origines mais absentes de `POLARIS.competences`.
+ *
+ * On les recense au lieu de les inventer : leur couple d'attributs conditionne
+ * tous leurs chiffres, et une paire devinée fausserait la fiche en silence.
+ * Le démarrage les journalise, et l'assistant signale qu'un niveau accordé ne
+ * sera pas appliqué.
+ */
+POLARIS.competencesAConfirmer = new Set();
+
+/**
+ * Valide et indexe une section du catalogue des origines.
+ *
+ * Comme pour les capacités spéciales, une entrée fautive est écartée seule,
+ * avec un avertissement nommé : le fichier est rempli à la main.
+ *
+ * @param {object[]} entrees
+ * @returns {{origines: object[], erreurs: string[]}}
+ */
+POLARIS.indexerOrigines = function (entrees) {
+  const origines = [];
+  const erreurs = [];
+  const vues = new Set();
+
+  const lireCompetence = (c, ou) => {
+    if (!c?.cle) { erreurs.push(`${ou} : compétence sans « cle »`); return null; }
+    if (!POLARIS.competences[c.cle]) POLARIS.competencesAConfirmer.add(c.cle);
+
+    return {
+      cle: c.cle,
+      specialisation: c.specialisation ?? "",
+      niveau: Number(c.niveau) || 0,
+      // Signale à l'écran qu'un niveau accordé restera lettre morte.
+      inconnue: !POLARIS.competences[c.cle]
+    };
+  };
+
+  for (const [rang, entree] of (entrees ?? []).entries()) {
+    const ou = `entrée ${rang + 1}`;
+
+    if (!entree?.id) { erreurs.push(`${ou} : « id » manquant`); continue; }
+    if (!entree.nom) { erreurs.push(`${ou} (${entree.id}) : « nom » manquant`); continue; }
+    if (vues.has(entree.id)) { erreurs.push(`${ou} : « id » en double — ${entree.id}`); continue; }
+    vues.add(entree.id);
+
+    const competences = (entree.competences ?? [])
+      .map((c) => lireCompetence(c, `${ou} (${entree.id})`))
+      .filter(Boolean);
+
+    const choix = (entree.choix ?? [])
+      .map((groupe, i) => ({
+        niveau: Number(groupe.niveau) || 0,
+        options: (groupe.options ?? [])
+          .map((o) => lireCompetence(o, `${ou} (${entree.id}), choix ${i + 1}`))
+          .filter(Boolean)
+      }))
+      .filter((groupe) => groupe.options.length >= 2);
+
+    origines.push({
+      id: entree.id,
+      nom: entree.nom,
+      description: entree.description ?? "",
+      tirage: Array.isArray(entree.tirage) && entree.tirage.length === 2 ? [...entree.tirage] : null,
+      competences,
+      choix
+    });
+  }
+
+  return { origines, erreurs };
+};
+
+/**
+ * Origine que désigne un résultat de dé dans une section.
+ * @param {string} section  geographiques | sociales | formations
+ * @param {number} de
+ * @returns {object|null}
+ */
+POLARIS.origineTiree = function (section, de) {
+  return (
+    (POLARIS.creation[section] ?? []).find(
+      (o) => o.tirage && de >= o.tirage[0] && de <= o.tirage[1]
+    ) ?? null
+  );
+};
+
+/**
+ * Âges de la création.
+ * Source : livre de base, transmis par l'auteur du système.
+ *
+ * Un enfant est adulte à 12 ans et son apprentissage commence aussitôt : c'est
+ * de là que se comptent les années d'expérience préliminaire. Un métier ne peut
+ * en revanche être exercé qu'à partir de 16 ans, ce qui fait de l'âge de départ
+ * un vrai choix — un personnage jeune aura peu vécu.
+ */
+POLARIS.creation.age = {
+  /** Âge auquel l'apprentissage démarre, et donc origine du décompte. */
+  debutApprentissage: 12,
+
+  /** Âge minimal pour exercer un métier. */
+  ageMinimumMetier: 16,
+
+  /**
+   * Deux méthodes au choix du joueur : un âge sûr, ou un tirage qui peut
+   * rapporter une année de plus comme en coûter trois.
+   */
+  methodes: {
+    fixe: { label: "POLARIS.Creation.Age.fixe", age: 17 },
+    tirage: { label: "POLARIS.Creation.Age.tirage", base: 14, de: "1d4" }
+  },
+
+  methodeParDefaut: "fixe"
+};
+
+/**
+ * Années d'apprentissage dont dispose un personnage à la création.
+ * @param {number} ageDepart
+ * @returns {number} Jamais négatif : un âge sous 12 ans ne rend rien.
+ */
+POLARIS.creation.anneesApprentissage = function (ageDepart) {
+  return Math.max(0, (Number(ageDepart) || 0) - POLARIS.creation.age.debutApprentissage);
+};
+
+/**
+ * Le personnage est-il en âge d'exercer un métier ?
+ * @param {number} ageDepart
+ * @returns {boolean}
+ */
+POLARIS.creation.peutExercerUnMetier = function (ageDepart) {
+  return (Number(ageDepart) || 0) >= POLARIS.creation.age.ageMinimumMetier;
+};
+
+/**
+ * ⚠️ À VÉRIFIER — Budgets des enveloppes annexes.
+ *
+ * Elles ne se confondent pas avec les points de création : les attributs, le
+ * type génétique et les mutations puisent tous dans la bourse de PC, tandis que
+ * l'expérience préliminaire et les avantages ont leurs propres réserves.
  *
  * `null` signifie « budget inconnu » : l'assistant compte alors la dépense sans
  * jamais l'interdire, et le signale à l'écran plutôt que d'inventer un plafond.
@@ -907,7 +1055,6 @@ POLARIS.creation.pointsAttributs = function () {
  * pouvant abonder l'une et l'autre séparément.
  */
 POLARIS.creation.points = {
-  capacitesSpeciales: null,
   experiencePreliminaire: null,
   avantages: null,
   desavantages: null
@@ -999,40 +1146,324 @@ POLARIS.creation.archetypes = {
  * comme nul par l'assistant, qui signale que le chiffre manque.
  */
 POLARIS.creation.typesGenetiques = {
-  hybrideNaturel: {
-    label: "POLARIS.TypeGenetique.hybrideNaturel",
-    cout: null,
-    modificateurs: {},
-    avantages: [],
-    desavantages: []
-  },
-  genoHybride: {
-    label: "POLARIS.TypeGenetique.genoHybride",
-    cout: null,
-    modificateurs: {},
-    avantages: [],
-    desavantages: []
-  },
-  technoHybride: {
-    label: "POLARIS.TypeGenetique.technoHybride",
-    cout: null,
-    modificateurs: {},
-    avantages: [],
-    desavantages: []
-  },
   humainNormal: {
-    label: "POLARIS.TypeGenetique.humainNormal",
-    // Le seul type gratuit, et le seul dont le coût soit connu avec certitude.
+    label: "POLARIS.TypeGenetique.humainNormal.nom",
+    // Le type par défaut, et le seul gratuit.
     cout: 0,
     modificateurs: {},
-    avantages: [],
-    desavantages: []
+    competence: null,
+    profondeurMax: null,
+    conditions: [],
+    description: "POLARIS.TypeGenetique.humainNormal.description"
+  },
+
+  hybrideNaturel: {
+    label: "POLARIS.TypeGenetique.hybrideNaturel.nom",
+    cout: 5,
+    modificateurs: { for: 1, con: 2, coo: 2, ada: 1, int: -2 },
+    // Seul type à posséder la compétence Hybride d'emblée à +3.
+    competence: { cle: "hybride", maitriseDepart: 3, maitriseMax: null },
+    // 1 000 m, plus 1 000 m par niveau global d'Hybride.
+    profondeurMax: { base: 1000, parNiveau: 1000 },
+    // Portée de la perception sous-marine, en mètres par point de Perception.
+    perceptionSousMarine: 10,
+    conditions: [],
+    description: "POLARIS.TypeGenetique.hybrideNaturel.description"
+  },
+
+  genoHybride: {
+    label: "POLARIS.TypeGenetique.genoHybride.nom",
+    cout: 5,
+    modificateurs: { for: 1, con: 1, coo: 2, pre: -2 },
+    competence: { cle: "hybride", maitriseDepart: 0, maitriseMax: null },
+    // 1 500 m, plus 750 m par niveau global d'Hybride.
+    profondeurMax: { base: 1500, parNiveau: 750 },
+    perceptionSousMarine: 5,
+    conditions: ["POLARIS.TypeGenetique.genoHybride.condition"],
+    description: "POLARIS.TypeGenetique.genoHybride.description"
+  },
+
+  technoHybride: {
+    label: "POLARIS.TypeGenetique.technoHybride.nom",
+    cout: 5,
+    /**
+     * ⚠️ Le livre annonce « 5 PC, 4 PC pour les déserteurs » : le coût dépend
+     * d'un choix de fiction, pas d'une donnée. `coutAlternatif` porte le second
+     * tarif ; l'assistant ne l'applique pas encore automatiquement.
+     */
+    coutAlternatif: { cout: 4, label: "POLARIS.TypeGenetique.technoHybride.deserteur" },
+    // Présence -6, avec un plancher : elle ne peut pas descendre sous 3.
+    modificateurs: { for: 2, con: 3, ada: -2, vol: 3, pre: -6 },
+    minimums: { pre: 3 },
+    competence: { cle: "hybride", maitriseDepart: 0, maitriseMax: null },
+    // 3 000 m, plus 750 m par niveau global d'Hybride.
+    profondeurMax: { base: 3000, parNiveau: 750 },
+    perceptionSousMarine: 2,
+    conditions: [
+      "POLARIS.TypeGenetique.technoHybride.condition1",
+      "POLARIS.TypeGenetique.technoHybride.condition2",
+      "POLARIS.TypeGenetique.technoHybride.condition3"
+    ],
+    description: "POLARIS.TypeGenetique.technoHybride.description"
   }
 };
-POLARIS.creation.originesGeographiques = {};
-POLARIS.creation.originesSociales = {};
-POLARIS.creation.formations = {};
+
+/**
+ * Plancher, avant tout hybride, sous lequel un hybride ne peut pas plonger tant
+ * que son niveau global d'Hybride n'atteint pas 1.
+ * Source : livre de base — « ne peut plonger à plus de 100 m tant qu'il n'a pas
+ * développé son niveau global en compétence Hybride au niveau 1 ».
+ */
+POLARIS.profondeurSansHybride = 100;
+/**
+ * Origines et formations, remplies au démarrage depuis `data/origines.json`.
+ * Ce sont des TABLEAUX d'entrées indexées, et non des tables clé/valeur : elles
+ * se tirent au dé, donc leur ordre et leurs fourchettes comptent.
+ */
+POLARIS.creation.originesGeographiques = [];
+POLARIS.creation.originesSociales = [];
+POLARIS.creation.formations = [];
+
+/** ⚠️ À VÉRIFIER / VIDE — les études supérieures attendent leurs données. */
 POLARIS.creation.etudes = {};
+
+/* -------------------------------------------- */
+/*  Capacités spéciales : mutations et Polaris  */
+/* -------------------------------------------- */
+
+/**
+ * Genres de mutation, et leur effet sur la bourse de points de création.
+ * Source : livre de base, transmis par l'auteur du système.
+ *
+ * Une mutation désavantageuse ne coûte pas : elle RAPPORTE. C'est le seul
+ * poste de la création qui puisse agrandir la bourse, et le moyen prévu pour
+ * s'offrir un personnage plus doué en acceptant une tare.
+ *
+ * `signeCout` s'applique à un coût saisi en valeur absolue : +1 le décompte,
+ * -1 le crédite, 0 l'annule.
+ */
+POLARIS.genresMutation = {
+  avantageuse:    { label: "POLARIS.GenreMutation.avantageuse",    signeCout: 1 },
+  neutre:         { label: "POLARIS.GenreMutation.neutre",         signeCout: 0 },
+  desavantageuse: { label: "POLARIS.GenreMutation.desavantageuse", signeCout: -1 }
+};
+
+/**
+ * Coût en points de création d'une mutation, signe compris.
+ *
+ * Une mutation AVANTAGEUSE OBTENUE AU HASARD est gratuite : la table du livre
+ * marque sa colonne d'un astérisque, « seulement si la mutation est choisie par
+ * le joueur ». La colonne des désavantages, elle, n'en porte pas — une tare
+ * tirée au sort rapporte donc ses points comme si elle avait été choisie.
+ * C'est ce qui rend le tirage attrayant : on gagne des avantages gratuits, mais
+ * on ne décide pas lesquels.
+ *
+ * @param {string}  genre         Clé dans POLARIS.genresMutation.
+ * @param {number}  cout          Coût saisi, en valeur absolue.
+ * @param {boolean} [tireeAuSort] Vrai si la mutation vient d'un jet.
+ * @returns {number}  Positif si la mutation se paie, négatif si elle rapporte.
+ */
+POLARIS.coutMutation = function (genre, cout, tireeAuSort = false) {
+  const signe = POLARIS.genresMutation[genre]?.signeCout ?? 0;
+  if (tireeAuSort && signe > 0) return 0;
+  return signe * Math.abs(Number(cout) || 0);
+};
+
+/** Dé de la table des mutations. Source : livre de base — table au 1D100. */
+POLARIS.deTableMutations = "1d100";
+
+/**
+ * Capacités que désigne un résultat sur la table des mutations.
+ *
+ * Plusieurs entrées partagent parfois une même fourchette : les six résistances
+ * naturelles occupent toutes 76-80, départagées ensuite par un 1D6.
+ *
+ * @param {number} de100
+ * @returns {object[]} Les capacités candidates, éventuellement plusieurs.
+ */
+POLARIS.candidatsMutation = function (de100) {
+  return Object.values(POLARIS.creation.capacitesSpeciales).filter(
+    (c) => c.tirage && de100 >= c.tirage[0] && de100 <= c.tirage[1]
+  );
+};
+
+/**
+ * Départage des candidats par le résultat de la table imbriquée.
+ * @param {object[]} candidats
+ * @param {number}   sousDe
+ * @returns {object|null}  `null` quand la face ne désigne rien : le livre dit
+ *                         alors « relancer ».
+ */
+POLARIS.departagerMutation = function (candidats, sousDe) {
+  return candidats.find((c) => c.sousTirage === sousDe) ?? null;
+};
+
+/**
+ * Catalogue des capacités spéciales — mutations, effet Polaris, compétences
+ * spéciales achetables.
+ *
+ * Rempli au démarrage depuis `data/capacites-speciales.json`, pas écrit ici :
+ * un catalogue destiné à grossir n'a rien à faire dans un fichier de logique,
+ * et il doit rester modifiable sans toucher au code. La règle « aucun chiffre
+ * hors de la config » vaut toujours — ce fichier de données EST de la config.
+ *
+ * Structure après chargement, indexée par `id` :
+ *   { id, nom, type, genre, cout, description }
+ */
+POLARIS.creation.capacitesSpeciales = {};
+
+/** Chemin du catalogue, relatif à la racine du système. */
+POLARIS.CHEMIN_CAPACITES = `systems/${POLARIS.ID}/data/capacites-speciales.json`;
+
+/** Types de capacité spéciale, qui décident de la section où elle s'affiche. */
+POLARIS.typesCapacite = {
+  mutation: "POLARIS.TypeCapacite.mutation",
+  polaris: "POLARIS.TypeCapacite.polaris",
+  competence: "POLARIS.TypeCapacite.competence"
+};
+
+/**
+ * Valide et indexe les entrées brutes du catalogue.
+ *
+ * Le fichier étant rempli à la main, une entrée fautive est écartée avec un
+ * avertissement plutôt que de faire tomber le système : une coquille ne doit
+ * pas empêcher de jouer.
+ *
+ * @param {object} brut  Contenu du JSON.
+ * @returns {{capacites: object, erreurs: string[]}}
+ */
+POLARIS.indexerCapacites = function (brut) {
+  const capacites = {};
+  const erreurs = [];
+
+  for (const [rang, entree] of (brut?.capacites ?? []).entries()) {
+    const ou = `entrée ${rang + 1}`;
+
+    if (!entree?.id) { erreurs.push(`${ou} : « id » manquant`); continue; }
+    if (!entree.nom) { erreurs.push(`${ou} (${entree.id}) : « nom » manquant`); continue; }
+    if (capacites[entree.id]) { erreurs.push(`${ou} : « id » en double — ${entree.id}`); continue; }
+
+    if (entree.genre && !POLARIS.genresMutation[entree.genre]) {
+      erreurs.push(`${ou} (${entree.id}) : genre inconnu — ${entree.genre}`);
+      continue;
+    }
+    if (entree.type && !POLARIS.typesCapacite[entree.type]) {
+      erreurs.push(`${ou} (${entree.id}) : type inconnu — ${entree.type}`);
+      continue;
+    }
+
+    // Compétence associée, facultative. Une entrée fautive ici n'invalide que
+    // la compétence, pas la capacité : mieux vaut une mutation sans compétence
+    // qu'une mutation absente.
+    let competence = null;
+    if (entree.competence) {
+      const c = entree.competence;
+
+      if (!c.cle) {
+        erreurs.push(`${ou} (${entree.id}) : compétence sans « cle », ignorée`);
+      } else if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(c.cle)) {
+        // La clé sert de nom de champ de formulaire : une espace ou un accent
+        // la casserait silencieusement.
+        erreurs.push(`${ou} (${entree.id}) : clé de compétence invalide — ${c.cle}`);
+      } else if (!Array.isArray(c.attributs) || c.attributs.length !== 2) {
+        erreurs.push(`${ou} (${entree.id}) : la compétence attend deux attributs`);
+      } else if (c.attributs.some((a) => !POLARIS.attributs[a])) {
+        erreurs.push(`${ou} (${entree.id}) : attribut inconnu dans ${c.attributs.join("/")}`);
+      } else {
+        competence = {
+          cle: c.cle,
+          nom: c.nom ?? entree.nom,
+          attributs: [...c.attributs],
+          modificateur: Number(c.modificateur) || 0,
+          // Niveau de maîtrise auquel la compétence DÉBUTE quand cette
+          // capacité-ci la procure. Il appartient à la source et non à la
+          // compétence : la compétence Hybride commence à -3 pour un Amphibie,
+          // à +3 pour un hybride naturel et à 0 pour les deux autres hybrides.
+          maitriseDepart: Number(c.maitriseDepart) || 0,
+          maitriseMax: c.maitriseMax === undefined ? null : c.maitriseMax,
+          categorie: POLARIS.categoriesCompetence[c.categorie] ? c.categorie : "physique",
+          marqueurs: (c.marqueurs ?? []).filter((m) => POLARIS.marqueursCompetence[m]),
+          // Certaines compétences spéciales se développent « à coût doublé ».
+          coutDeveloppement: c.coutDeveloppement === "double" ? "double" : "normal"
+        };
+      }
+    }
+
+    capacites[entree.id] = {
+      id: entree.id,
+      nom: entree.nom,
+      type: entree.type ?? "mutation",
+      genre: entree.genre ?? "neutre",
+      // Le genre porte le signe : un coût saisi négatif serait une double
+      // négation, on ne retient donc que la valeur absolue.
+      cout: Math.abs(Number(entree.cout) || 0),
+      description: entree.description ?? "",
+      // Fourchette de la table des mutations au 1D100. Conservée parce que
+      // plusieurs mutations (Symbiote, Parasite) en font tirer d'autres au sort.
+      tirage: Array.isArray(entree.tirage) && entree.tirage.length === 2 ? [...entree.tirage] : null,
+      // Face de la table imbriquée qui désigne cette entrée, quand plusieurs
+      // capacités partagent la même fourchette 1D100.
+      sousTirage: Number.isInteger(entree.sousTirage) ? entree.sousTirage : null,
+      deSousTirage: entree.deSousTirage ?? "1d6",
+      competence
+    };
+  }
+
+  return { capacites, erreurs };
+};
+
+/**
+ * Déclare dans `POLARIS.competences` les compétences apportées par le catalogue.
+ *
+ * Ces compétences sont marquées `speciale` : elles existent dans le schéma de
+ * tout personnage, mais n'apparaissent sur une fiche que si le personnage porte
+ * la capacité qui y donne accès. C'est le mécanisme `acquise` déjà en place.
+ *
+ * À appeler UNE FOIS, au chargement du catalogue et avant que le premier
+ * DataModel ne construise son schéma.
+ *
+ * @param {object} capacites  Catalogue indexé, tel que rendu par indexerCapacites.
+ * @returns {string[]}        Les clés de compétence effectivement ajoutées.
+ */
+POLARIS.enregistrerCompetencesDeCapacites = function (capacites) {
+  const ajoutees = [];
+
+  for (const capacite of Object.values(capacites)) {
+    const c = capacite.competence;
+    if (!c) continue;
+
+    // Une compétence déjà déclarée dans la config prime : le livre pourrait un
+    // jour la lister nommément, et le catalogue ne doit pas l'écraser.
+    if (POLARIS.competences[c.cle]) continue;
+
+    POLARIS.competences[c.cle] = {
+      label: c.nom,
+      attributs: c.attributs,
+      categorie: c.categorie,
+      speciale: true,
+      marqueurs: c.marqueurs,
+      modificateur: c.modificateur,
+      // Ni `maitriseDepart` ni `maitriseMax` ne sont recopiés ici : ils varient
+      // d'une source à l'autre pour une même compétence, et se résolvent donc
+      // sur le personnage, en fonction de ce qu'il porte réellement.
+      capaciteId: capacite.id
+    };
+    ajoutees.push(c.cle);
+  }
+
+  return ajoutees;
+};
+
+/**
+ * La capacité à manipuler l'effet Polaris, déclarée à la création.
+ *
+ * ⚠️ À VÉRIFIER — son coût en points de création n'est pas connu. À `null`, il
+ * est compté pour zéro et l'assistant le signale.
+ */
+POLARIS.creation.effetPolaris = {
+  label: "POLARIS.Creation.effetPolaris",
+  cout: null
+};
 
 /* -------------------------------------------- */
 /*  Résolution                                  */

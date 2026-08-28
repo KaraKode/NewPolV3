@@ -22,6 +22,11 @@ export class PolarisTrait extends PolarisItemBase {
 
     schema.cout = new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 });
 
+    // Référence vers l'entrée du catalogue des capacités spéciales, quand le
+    // trait en provient. C'est ce lien qui débloque la compétence associée sur
+    // la fiche : porter la mutation suffit, sans réglage supplémentaire.
+    schema.capaciteId = new fields.StringField({ required: false, blank: true });
+
     return schema;
   }
 }

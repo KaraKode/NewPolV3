@@ -58,6 +58,19 @@ export class PolarisActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     // Le personnage et le PNJ partagent la même structure de compétences.
     context.competencesParCategorie = this.actor.system.competencesParCategorie ?? {};
 
+    // Table des marges, à titre d'aide-mémoire sur la fiche. Les libellés sont
+    // composés ici : la dernière tranche est ouverte vers le haut (`Infinity`),
+    // ce qu'un template ne saurait pas présenter.
+    context.tableMarges = POLARIS.tableMarges.map((tranche) => ({
+      mod: tranche.mod,
+      libelle:
+        tranche.max === Infinity
+          ? `${tranche.min}+`
+          : tranche.min === tranche.max
+            ? `${tranche.min}`
+            : `${tranche.min}–${tranche.max}`
+    }));
+
     context.biographieEnrichie = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
       this.actor.system.biographie ?? "",
       { relativeTo: this.actor, secrets: this.actor.isOwner }

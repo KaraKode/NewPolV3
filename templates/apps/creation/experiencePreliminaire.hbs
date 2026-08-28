@@ -1,68 +1,195 @@
 {{!-- Étape 4 — L'expérience préliminaire.
 
-     Ce que le personnage a fait avant de commencer à jouer : ses métiers. Le
-     livre n'ayant pas encore livré sa liste ni son barème, chaque ligne se
-     saisit à la main et l'ensemble est consigné en note sur la fiche. --}}
+     Tout part de l'âge : l'apprentissage commence à 12 ans, et les années
+     écoulées jusqu'à l'âge de départ forment le passé du personnage. Un métier
+     ne s'exerce qu'à partir de 16 ans, ce qui fait du choix de l'âge un vrai
+     pari plutôt qu'une formalité. --}}
 
 <p class="polaris-aide">{{localize "POLARIS.Creation.Aide.experiencePreliminaire"}}</p>
 
-<div class="polaris-creation-compteur">
-  <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
-  <strong data-budget="experiencePreliminaire"
-          class="{{#if budgets.experiencePreliminaire.depasse}}polaris-budget-depasse{{/if}}">
-    {{#if budgets.experiencePreliminaire.illimite}}
-      {{budgets.experiencePreliminaire.depense}}
-    {{else}}
-      {{budgets.experiencePreliminaire.depense}} / {{budgets.experiencePreliminaire.budget}}
-    {{/if}}
-  </strong>
-  {{#if budgets.experiencePreliminaire.illimite}}
-    <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
-  {{/if}}
+{{!-- 1. L'âge de départ --}}
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Creation.Age.titre"}}</h3>
+
+<div class="polaris-creation-age">
+  <button type="button"
+          class="polaris-creation-methode {{#unless ageParTirage}}polaris-methode-active{{/unless}}"
+          data-action="choisirMethodeAge"
+          data-methode="fixe">
+    <i class="fa-solid fa-shield-halved"></i>
+    {{localize "POLARIS.Creation.Age.fixe"}}
+    <em>{{age.methodes.fixe.age}} {{localize "POLARIS.Creation.Age.ans"}}</em>
+  </button>
+
+  <button type="button"
+          class="polaris-creation-methode {{#if ageParTirage}}polaris-methode-active{{/if}}"
+          data-action="tirerAge"
+          data-tooltip="{{localize 'POLARIS.Infobulle.tirerAge'}}">
+    <i class="fa-solid fa-dice"></i>
+    {{localize "POLARIS.Creation.Age.tirage"}}
+    <em>{{age.methodes.tirage.base}} + {{age.methodes.tirage.de}}</em>
+  </button>
+
+  <div class="polaris-creation-age-resultat">
+    <span class="polaris-creation-age-valeur">{{donnees.ageDepart}}</span>
+    <span>{{localize "POLARIS.Creation.Age.ans"}}</span>
+  </div>
 </div>
 
-<table class="polaris-table polaris-table-creation">
-  <thead>
-    <tr>
-      <th>{{localize "POLARIS.Creation.metier"}}</th>
-      <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.cout"}}</th>
-      <th>{{localize "POLARIS.Champ.notes"}}</th>
-      <th class="polaris-colonne-action"></th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each donnees.metiers as |metier index|}}
-      <tr>
-        <td>
-          <input type="text" name="metiers.{{index}}.nom" value="{{metier.nom}}"
-                 placeholder="{{localize 'POLARIS.Creation.placeholderMetier'}}" />
-        </td>
-        <td class="polaris-colonne-nombre">
-          <input type="number" name="metiers.{{index}}.cout" value="{{metier.cout}}"
-                 min="0" data-dtype="Number" />
-        </td>
-        <td>
-          <input type="text" name="metiers.{{index}}.description" value="{{metier.description}}" />
-        </td>
-        <td class="polaris-colonne-action">
-          <button type="button"
-                  data-action="retirerLigne"
-                  data-liste="metiers"
-                  data-index="{{index}}"
-                  data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </td>
-      </tr>
-    {{else}}
-      <tr>
-        <td colspan="4" class="polaris-vide">{{localize "POLARIS.Creation.aucunMetier"}}</td>
-      </tr>
-    {{/each}}
-  </tbody>
-</table>
+{{!-- L'âge ne se saisit pas à la main : il résulte d'une des deux méthodes.
+      Il doit malgré tout accompagner le formulaire. --}}
+<input type="hidden" name="ageDepart" value="{{donnees.ageDepart}}" data-dtype="Number" />
+<input type="hidden" name="methodeAge" value="{{donnees.methodeAge}}" />
 
-<button type="button" class="polaris-bouton-ajout-large" data-action="ajouterLigne" data-liste="metiers">
-  <i class="fa-solid fa-plus"></i>
-  {{localize "POLARIS.Creation.ajouterMetier"}}
-</button>
+<div class="polaris-creation-compteur">
+  <span>{{localize "POLARIS.Creation.Age.annees"}}</span>
+  <strong>{{anneesApprentissage}}</strong>
+  <span class="polaris-creation-detail-bourse">
+    {{localize "POLARIS.Creation.Age.depuis"}} {{age.debutApprentissage}}
+    {{localize "POLARIS.Creation.Age.ans"}}
+  </span>
+</div>
+
+{{#unless peutExercerUnMetier}}
+  <p class="polaris-avertissement">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    {{localize "POLARIS.Creation.Avertissement.tropJeunePourUnMetier"}}
+  </p>
+{{/unless}}
+
+{{!-- 2. Origines et formation --}}
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Champ.origines"}}</h3>
+
+{{#each sectionsOrigine as |section|}}
+  <div class="polaris-creation-origine">
+    <label class="polaris-champ-large">
+      <span>{{localize section.label}}</span>
+
+      {{#if (eq (polarisTaille section.entrees) 0)}}
+        {{!-- Section pas encore transcrite : saisie libre plutôt qu'une liste
+              déroulante sans option. --}}
+        <input type="text" name="{{section.champ}}"
+               value="{{lookup @root.donnees section.champ}}" />
+      {{else}}
+        <span class="polaris-creation-origine-ligne">
+          <select name="{{section.champ}}" data-recharge="origine">
+            <option value="">—</option>
+            {{#each section.entrees as |origine|}}
+              <option value="{{origine.id}}"
+                      {{#if (eq origine.id (lookup @root.donnees ../section.champ))}}selected{{/if}}>
+                {{origine.nom}}
+              </option>
+            {{/each}}
+          </select>
+
+          {{#if section.de}}
+            {{!-- Les fourchettes ne sont pas équiprobables : le tirage reflète
+                  la démographie du monde, le choix libre non. --}}
+            <button type="button"
+                    class="polaris-bouton-tirage-origine"
+                    data-action="tirerOrigine"
+                    data-section="{{section.cle}}"
+                    data-champ="{{section.champ}}"
+                    data-tooltip="{{localize 'POLARIS.Infobulle.tirerOrigine'}}">
+              <i class="fa-solid fa-dice"></i> {{section.de}}
+            </button>
+          {{/if}}
+        </span>
+      {{/if}}
+    </label>
+
+    {{#if section.choisie}}
+      {{#if section.choisie.description}}
+        <p class="polaris-creation-description">{{section.choisie.description}}</p>
+      {{/if}}
+
+      {{#if section.choisie.competences.length}}
+        <ul class="polaris-creation-acquis">
+          {{#each section.choisie.competences as |acquis|}}
+            <li class="{{#if acquis.inconnue}}polaris-acquis-inconnu{{/if}}">
+              <strong>+{{acquis.niveau}}</strong>
+              {{acquis.cle}}
+              {{#if acquis.specialisation}}<em>({{acquis.specialisation}})</em>{{/if}}
+              {{#if acquis.inconnue}}
+                <i class="fa-solid fa-triangle-exclamation"
+                   data-tooltip="{{localize 'POLARIS.Infobulle.competenceNonDeclaree'}}"></i>
+              {{/if}}
+            </li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      {{#each section.choisie.choix as |groupe|}}
+        <p class="polaris-creation-choix-acquis">
+          <strong>+{{groupe.niveau}}</strong>
+          {{localize "POLARIS.Creation.auChoix"}} :
+          {{#each groupe.options as |option|}}{{#unless @first}} / {{/unless}}{{option.cle}}{{/each}}
+        </p>
+      {{/each}}
+    {{/if}}
+  </div>
+{{/each}}
+
+{{!-- 3. Les métiers, réservés aux personnages en âge d'en exercer un --}}
+<h3 class="polaris-titre-sous-section">{{localize "POLARIS.Creation.metiers"}}</h3>
+
+{{#if peutExercerUnMetier}}
+  <div class="polaris-creation-compteur">
+    <span>{{localize "POLARIS.Creation.pointsDepenses"}}</span>
+    <strong data-budget="experiencePreliminaire"
+            class="{{#if budgets.experiencePreliminaire.depasse}}polaris-budget-depasse{{/if}}">
+      {{#if budgets.experiencePreliminaire.illimite}}
+        {{budgets.experiencePreliminaire.depense}}
+      {{else}}
+        {{budgets.experiencePreliminaire.depense}} / {{budgets.experiencePreliminaire.budget}}
+      {{/if}}
+    </strong>
+    {{#if budgets.experiencePreliminaire.illimite}}
+      <span class="polaris-creation-illimite">{{localize "POLARIS.Creation.budgetInconnu"}}</span>
+    {{/if}}
+  </div>
+
+  <table class="polaris-table polaris-table-creation">
+    <thead>
+      <tr>
+        <th>{{localize "POLARIS.Creation.metier"}}</th>
+        <th class="polaris-colonne-nombre">{{localize "POLARIS.Creation.cout"}}</th>
+        <th>{{localize "POLARIS.Champ.notes"}}</th>
+        <th class="polaris-colonne-action"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each donnees.metiers as |metier index|}}
+        <tr>
+          <td>
+            <input type="text" name="metiers.{{index}}.nom" value="{{metier.nom}}"
+                   placeholder="{{localize 'POLARIS.Creation.placeholderMetier'}}" />
+          </td>
+          <td class="polaris-colonne-nombre">
+            <input type="number" name="metiers.{{index}}.cout" value="{{metier.cout}}"
+                   min="0" data-dtype="Number" />
+          </td>
+          <td>
+            <input type="text" name="metiers.{{index}}.description" value="{{metier.description}}" />
+          </td>
+          <td class="polaris-colonne-action">
+            <button type="button" data-action="retirerLigne" data-liste="metiers" data-index="{{index}}"
+                    data-tooltip="{{localize 'POLARIS.Action.supprimer'}}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      {{else}}
+        <tr>
+          <td colspan="4" class="polaris-vide">{{localize "POLARIS.Creation.aucunMetier"}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <button type="button" class="polaris-bouton-ajout-large" data-action="ajouterLigne" data-liste="metiers">
+    <i class="fa-solid fa-plus"></i>
+    {{localize "POLARIS.Creation.ajouterMetier"}}
+  </button>
+{{else}}
+  <p class="polaris-vide">{{localize "POLARIS.Creation.Avertissement.tropJeunePourUnMetier"}}</p>
+{{/if}}

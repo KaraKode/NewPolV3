@@ -73,13 +73,29 @@
 /*  Onglets                                     */
 /* -------------------------------------------- */
 
-/* Règle fonctionnelle : seul l'onglet actif est visible. */
+/* La zone de contenu d'une fiche est une colonne : en-tête et barre d'onglets
+   restent fixes, seul l'onglet actif défile. `min-height: 0` est indispensable —
+   sans lui, un enfant flex refuse de rétrécir sous la hauteur de son contenu et
+   c'est la fenêtre entière qui déborde au lieu de l'onglet. */
+.polaris .polaris-contenu {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .polaris .tab {
   display: none;
 }
 
+/* L'onglet actif prend toute la hauteur restante et défile seul. Sans quoi une
+   longue liste de compétences sort de la fenêtre sans être atteignable. */
 .polaris .tab.active {
   display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.3rem;
 }
 
 .polaris .polaris-onglets {
@@ -1234,5 +1250,249 @@
 .polaris .polaris-secondaire-unite {
   font-size: 0.68rem;
   font-style: italic;
+  color: var(--pol-texte-doux);
+}
+
+/* -------------------------------------------- */
+/*  Mutations (étape des capacités spéciales)   */
+/* -------------------------------------------- */
+
+.polaris-creation .polaris-colonne-genre {
+  width: 9rem;
+}
+
+.polaris-creation .polaris-creation-gratuit {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--pol-texte-doux);
+}
+
+/* Le genre d'une mutation se lit d'un coup d'œil : ce qui coûte, ce qui
+   rapporte. Une bordure gauche colorée suffit sans alourdir le tableau. */
+.polaris-creation .polaris-mutation-avantageuse td:first-child {
+  border-left: 3px solid var(--pol-accent-sombre);
+}
+
+.polaris-creation .polaris-mutation-desavantageuse td:first-child {
+  border-left: 3px solid var(--pol-critique);
+}
+
+.polaris-creation .polaris-creation-polaris {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.7rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+}
+
+/* Catalogue des capacités spéciales : des pastilles à cliquer pour préremplir
+   une ligne, plutôt qu'une liste déroulante qui cacherait les coûts. */
+.polaris-creation .polaris-creation-catalogue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.4rem 0;
+}
+
+.polaris-creation .polaris-creation-catalogue-titre {
+  font-size: 0.72rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-creation-pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: auto;
+  padding: 0.2rem 0.55rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 999px;
+  color: var(--pol-texte);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-creation-pastille:hover {
+  border-color: var(--pol-accent);
+  color: var(--pol-accent);
+}
+
+.polaris-creation .polaris-creation-pastille em {
+  color: var(--pol-texte-doux);
+  font-size: 0.7rem;
+}
+
+/* Modificateur propre à une compétence, affiché à côté de sa base. */
+.polaris .polaris-modificateur-competence {
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--pol-critique);
+}
+
+/* Tirage aléatoire d'une mutation. */
+.polaris-creation .polaris-creation-actions-mutations {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.polaris-creation .polaris-bouton-tirage:hover {
+  border-color: var(--pol-critique);
+  color: var(--pol-critique);
+}
+
+/* Marque une ligne obtenue au hasard : sa gratuité s'explique par là. */
+.polaris-creation .polaris-marqueur-tirage {
+  margin-left: 0.3rem;
+  color: var(--pol-critique);
+}
+
+/* Table des marges : aide-mémoire du bas de la feuille officielle. Purement
+   informative, donc discrète et non survolable comme une ligne cliquable. */
+.polaris .polaris-table-marges td {
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.polaris .polaris-table-marges tbody tr:hover {
+  background: none;
+}
+
+/* -------------------------------------------- */
+/*  Âge de départ (expérience préliminaire)     */
+/* -------------------------------------------- */
+
+.polaris-creation .polaris-creation-age {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin: 0.4rem 0;
+}
+
+.polaris-creation .polaris-creation-methode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  flex: 1;
+  height: auto;
+  min-height: 3.4rem;
+  padding: 0.5rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+  color: var(--pol-texte-doux);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-creation-methode em {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.polaris-creation .polaris-creation-methode:hover {
+  border-color: var(--pol-accent);
+  color: var(--pol-accent);
+}
+
+/* La méthode retenue se distingue : le choix engage la suite de l'étape. */
+.polaris-creation .polaris-methode-active {
+  border-color: var(--pol-accent);
+  color: var(--pol-accent);
+  background: rgba(79, 209, 224, 0.08);
+}
+
+.polaris-creation .polaris-creation-age-resultat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 5rem;
+  padding: 0.5rem;
+  background: var(--pol-abysse);
+  border: 1px solid var(--pol-accent-sombre);
+  border-radius: 5px;
+  font-size: 0.7rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-creation-age-valeur {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--pol-accent);
+  line-height: 1;
+}
+
+/* -------------------------------------------- */
+/*  Origines (expérience préliminaire)          */
+/* -------------------------------------------- */
+
+.polaris-creation .polaris-creation-origine {
+  margin-bottom: 0.7rem;
+}
+
+.polaris-creation .polaris-creation-origine-ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.polaris-creation .polaris-creation-origine-ligne select {
+  flex: 1;
+}
+
+.polaris-creation .polaris-bouton-tirage-origine {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: auto;
+  flex: 0 0 auto;
+  padding: 0.25rem 0.6rem;
+  background: var(--pol-fond-clair);
+  border: 1px solid var(--pol-bordure);
+  border-radius: 5px;
+  color: var(--pol-texte-doux);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.polaris-creation .polaris-bouton-tirage-origine:hover {
+  border-color: var(--pol-critique);
+  color: var(--pol-critique);
+}
+
+/* Compétences accordées par l'origine retenue. */
+.polaris-creation .polaris-creation-acquis {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.75rem;
+  color: var(--pol-texte-doux);
+}
+
+.polaris-creation .polaris-creation-acquis strong {
+  color: var(--pol-accent);
+}
+
+.polaris-creation .polaris-creation-acquis em {
+  opacity: 0.8;
+}
+
+/* Compétence citée mais pas encore déclarée : son niveau n'est pas appliqué. */
+.polaris-creation .polaris-acquis-inconnu {
+  color: var(--pol-critique);
+}
+
+.polaris-creation .polaris-creation-choix-acquis {
+  margin: 0.2rem 0 0 1.1rem;
+  font-size: 0.75rem;
   color: var(--pol-texte-doux);
 }
