@@ -25,36 +25,53 @@ chiffrée hors de la config*. Toute tâche 📖 doit rester une tâche 📖.
 
 ---
 
-## LE blocage : la liste des compétences
+## Les compétences : transcrites et instanciées
 
-**Une seule donnée débloque plus que toutes les autres réunies.**
+**Le blocage qui commandait tout le reste est levé.** Les 83 compétences de la
+table page 184 sont déclarées avec leurs couples d'attributs, leurs onze
+catégories et leurs marqueurs. Seize familles ont ensuite été instanciées
+d'après les descriptions, portant le catalogue à **213 compétences**.
 
-Le système ne déclare que **12 compétences, toutes inventées**, avec des couples
-d'attributs supposés. Or les origines géographiques transcrites en citent **dix
-vraies**, que je n'ai pas pu déclarer faute de connaître leurs attributs :
+- [x] ✅ **83 compétences** de la table page 184, avec leurs couples d'attributs
+- [x] ✅ Le « (-3) » du livre est un **niveau de maîtrise de départ**, comme les
+      compétences réservées `(X)` une fois apprises
+- [x] ✅ **Seize familles instanciées** : sciences (21), langues étrangères (15),
+      connaissance des nations (14), langages spécifiques (12), génie technique
+      (9), pilotage (8), commerce (7), mécanique (6), art/artisanat (5), armes
+      spéciales contact (5) et tir (3), langues anciennes (4), manœuvre
+      d'armures (4), milieux (4), tactique (4), expression artistique (4), arts
+      martiaux (3), langage des signes (2)
+- [x] ✅ **Graphe de pré-requis complet et cohérent** — plus aucune référence
+      dans le vide, aucun cycle. Nanotechnologie exige Physique/Chimie 10, qui
+      exige Éducation 10.
+- [x] ✅ **Filtrage de la fiche** — abstraites, spéciales et réservées restent
+      invisibles. Sur 213 compétences, 79 sont visibles d'office et 119 doivent
+      être apprises. Sans ce filtre, chaque fiche listerait les 33 langues et
+      les 21 sciences.
 
-```
-aquacultureElevage · bureaucratie · connaissanceMilieu · connaissanceNations
-educationCultureGenerale · electronique · manoeuvreArmure
-manoeuvresSousMarines · mecanique · pilotage
-```
+### Ce qu'il reste
 
-Elles sont recensées au démarrage et journalisées nommément ; dans l'assistant,
-chaque niveau accordé s'affiche en jaune avec la mention qu'il ne sera pas
-appliqué. La donnée est capturée mais **inerte**.
+Deux familles restent vides, à dessein : `controleMutations` est peuplée par le
+catalogue des capacités spéciales, et `pouvoirsEffetPolaris` renvoie au chapitre
+Effet Polaris page 248, non transcrit.
 
-- [ ] 📖 **Liste officielle des compétences** avec, pour chacune, ses deux
-      attributs, sa catégorie et sa nature générique ou spéciale
-- [ ] 📖 Manœuvre d'armure et Manœuvres sous-marines : deux compétences, ou deux
-      spécialisations d'une même ?
-- [ ] 📖 « Connaissance d'un milieu » et « Connaissance des nations » : des
-      compétences à spécialisation obligatoire ?
-- [ ] 📖 Marqueurs réels (limitative, PN, réservée, pré-requis) — le mécanisme
-      existe, les données non
-- [ ] 📖 Effet mécanique de chaque marqueur : aucun n'est implémenté
-
-Tant que ce point n'est pas réglé, **tous les chiffres de compétence affichés
-sont faux**, sur la fiche comme dans l'assistant.
+- [ ] ❌ **Effet mécanique des marqueurs.** Une compétence limitative doit
+      plafonner celle qu'elle limite, un pré-requis bloquer l'achat, une
+      compétence à progression naturelle gagner un niveau par année passée dans
+      la communauté (jusqu'à +5). Aujourd'hui, ce sont des étiquettes.
+- [ ] ❌ Saisir une spécialisation sur la fiche : le champ existe et s'affiche,
+      aucun `input` ne le renseigne
+- [ ] ❌ **La règle de la langue racine n'est pas appliquée.** `divisionLangueRacine`
+      est posé — comprendre une langue dérivée à la moitié du niveau de sa racine
+      — mais rien ne s'en sert : il faudrait que le jet sache quelle langue est
+      visée.
+- [ ] ❌ **Le niveau des Connaissances de nations dépend du personnage** : +3
+      pour sa communauté d'origine, 0 pour une connue, -3 pour une lointaine.
+      La règle est en config, rien ne l'applique.
+- [ ] 📖 Attributs des cinq armes spéciales de contact — le livre s'en remet au
+      meneur (« selon l'arme, FOR/COO ou COO/COO la plupart du temps »)
+- [ ] 📖 Pré-requis de la Criminalistique : « selon la technique employée »
+- [ ] 📖 Pouvoirs liés à l'Effet Polaris, chapitre page 248
 
 ---
 
@@ -148,8 +165,6 @@ L'assistant couvre les cinq étapes du livre. Voir
 - [ ] ❌ Piste d'initiative 0–25
 - [ ] ❌ Impossible d'équiper depuis la fiche, alors que la protection ne compte
       que les objets équipés
-- [ ] ❌ Spécialisation non saisissable : le champ existe et s'affiche, aucun
-      `input` ne le renseigne
 - [ ] ❌ Acquérir une compétence spéciale hors création
 - [ ] ❌ Profondeur maximale et perception sous-marine des hybrides : calculées
       dans la config, jamais affichées
@@ -342,32 +357,33 @@ mécanisée.
 
 ## Ordre suggéré
 
-**1. Débloquer.**
+**1. Rendre une partie possible.**
 
-1. Saisir la liste réelle des compétences et leurs couples d'attributs
-2. Trancher le cumul des malus de blessure
-3. Saisir les budgets restants et les répartitions d'archétypes
+1. Écrire la boucle de combat : dégâts → localisation → protection → blessure
+2. Réparer le jet d'attribut seul
+3. Trancher le cumul des malus de blessure
+4. Tables d'armes sur la fiche, bascule « équipé », glisser-déposer
 
-**2. Rendre une partie possible.**
+**2. Rendre les compétences utilisables.**
 
-4. Écrire la boucle de combat : dégâts → localisation → protection → blessure
-5. Réparer le jet d'attribut seul
-6. Tables d'armes sur la fiche, bascule « équipé », glisser-déposer
-7. Liste déroulante de type génétique
+5. Mécanisme d'instanciation des familles (Pilotage, Sciences, Langues…)
+6. Saisie des spécialisations sur la fiche
+7. Effet mécanique des marqueurs, à commencer par les limitatives
+8. Liste déroulante de type génétique
 
 **3. Compléter les règles.**
 
-8. Tests d'opposition
-9. La Chance
-10. Soins et états de santé
-11. Effets des mutations
-12. Effets Polaris
+9. Tests d'opposition
+10. La Chance
+11. Soins et états de santé
+12. Effets des mutations
+13. Effets Polaris
 
 **4. Confort.**
 
-13. Compendiums
-14. Migration
-15. Piste d'initiative
+14. Compendiums
+15. Migration
+16. Piste d'initiative
 
 ---
 
@@ -375,8 +391,7 @@ mécanisée.
 
 | Donnée | Bloque | Emplacement |
 |---|---|---|
-| Compétences + couples d'attributs | Tout le système | `POLARIS.competences` |
-| Nature générique / spéciale | Création, fiche | `speciale` |
+| Pouvoirs liés à l'Effet Polaris | Effet Polaris | `POLARIS.competences` |
 | Répartition des 8 archétypes | Création | `creation.archetypes[…].repartition` |
 | Origines sociales, formations, études | Création | `data/origines.json` |
 | Rendement d'une année d'apprentissage | Création | — |

@@ -32,7 +32,7 @@ export class PolarisArme extends PolarisItemBase {
     schema.competence = new fields.StringField({
       required: true,
       blank: false,
-      initial: "contact",
+      initial: "combatArme",
       choices: () => Object.keys(POLARIS.competences)
     });
 

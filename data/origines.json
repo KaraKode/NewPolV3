@@ -52,7 +52,7 @@
       "description": "Le personnage a grandi à bord d'un navide nomade, sans port d'attache.",
       "competences": [
         { "cle": "manoeuvresSousMarines", "niveau": 1 },
-        { "cle": "manoeuvreArmure", "specialisation": "Armures sous-marines", "niveau": 1 },
+        { "cle": "manoeuvreArmures", "specialisation": "Armures sous-marines", "niveau": 1 },
         { "cle": "pilotage", "specialisation": "Navire léger", "niveau": 1 },
         { "cle": "pilotage", "specialisation": "Scooters sous-marins", "niveau": 2 },
         { "cle": "mecanique", "specialisation": "Exo-armure ou navide", "niveau": 1 },
@@ -66,7 +66,7 @@
       "description": "Le personnage vient d'une petite station, où chacun met la main à tout.",
       "competences": [
         { "cle": "manoeuvresSousMarines", "niveau": 1 },
-        { "cle": "manoeuvreArmure", "specialisation": "Armures sous-marines", "niveau": 1 },
+        { "cle": "manoeuvreArmures", "specialisation": "Armures sous-marines", "niveau": 1 },
         { "cle": "pilotage", "specialisation": "Scooters sous-marins", "niveau": 2 },
         { "cle": "electronique", "niveau": 1 }
       ],
@@ -88,7 +88,7 @@
       "competences": [
         { "cle": "manoeuvresSousMarines", "niveau": 1 },
         { "cle": "bureaucratie", "niveau": 1 },
-        { "cle": "manoeuvreArmure", "specialisation": "Armures sous-marines", "niveau": 1 },
+        { "cle": "manoeuvreArmures", "specialisation": "Armures sous-marines", "niveau": 1 },
         { "cle": "pilotage", "specialisation": "Scooters sous-marins", "niveau": 1 },
         {
           "cle": "connaissanceNations",

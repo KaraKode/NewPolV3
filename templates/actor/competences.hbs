@@ -46,11 +46,20 @@
             </td>
 
             <td class="polaris-colonne-attributs">
-              {{#each competence.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
+              {{#if competence.attributsVariables}}
+                {{!-- Le livre écrit « variables » : c'est l'arme ou la discipline
+                      qui décide, la compétence seule ne peut pas se calculer. --}}
+                <span class="polaris-attributs-variables"
+                      data-tooltip="{{localize 'POLARIS.Infobulle.attributsVariables'}}">
+                  {{localize "POLARIS.Champ.attributsVariables"}}
+                </span>
+              {{else}}
+                {{#each competence.abbrs as |abbr|}}<span class="polaris-puce">{{abbr}}</span>{{/each}}
+              {{/if}}
             </td>
 
             <td class="polaris-colonne-nombre">
-              {{competence.base}}
+              {{#if competence.attributsVariables}}—{{else}}{{competence.base}}{{/if}}
               {{#if competence.modificateur}}
                 {{!-- Modificateur propre à la compétence, déjà compris dans la
                       base : l'afficher évite de croire à une erreur de calcul. --}}

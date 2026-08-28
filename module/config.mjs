@@ -175,11 +175,17 @@ POLARIS.lateralites = {
  * d'affichage propre au système, pas une donnée du livre.
  */
 POLARIS.categoriesCompetence = {
-  physique: "POLARIS.CategorieCompetence.physique",
-  combat: "POLARIS.CategorieCompetence.combat",
-  sociale: "POLARIS.CategorieCompetence.sociale",
-  technique: "POLARIS.CategorieCompetence.technique",
-  savoir: "POLARIS.CategorieCompetence.savoir"
+  aptitudesPhysiques: "POLARIS.CategorieCompetence.aptitudesPhysiques",
+  combatContact: "POLARIS.CategorieCompetence.combatContact",
+  combatTir: "POLARIS.CategorieCompetence.combatTir",
+  communication: "POLARIS.CategorieCompetence.communication",
+  competencesSpeciales: "POLARIS.CategorieCompetence.competencesSpeciales",
+  connaissances: "POLARIS.CategorieCompetence.connaissances",
+  furtivite: "POLARIS.CategorieCompetence.furtivite",
+  langues: "POLARIS.CategorieCompetence.langues",
+  pilotage: "POLARIS.CategorieCompetence.pilotage",
+  survie: "POLARIS.CategorieCompetence.survie",
+  techniques: "POLARIS.CategorieCompetence.techniques"
 };
 
 /**
@@ -225,25 +231,342 @@ POLARIS.marqueursCompetence = {
  * fiche, les jets et les cartes de chat suivent automatiquement.
  */
 POLARIS.competences = {
-  acrobatie:    { label: "POLARIS.Competence.acrobatie",    attributs: ["coo", "ada"], categorie: "physique" },
-  athletisme:   { label: "POLARIS.Competence.athletisme",   attributs: ["for", "con"], categorie: "physique" },
-  endurance:    { label: "POLARIS.Competence.endurance",    attributs: ["con", "vol"], categorie: "physique" },
-  escalade:     { label: "POLARIS.Competence.escalade",     attributs: ["for", "coo"], categorie: "physique" },
-  respiration:  { label: "POLARIS.Competence.respiration",  attributs: ["con", "vol"], categorie: "physique" },
-  manoeuvres:   { label: "POLARIS.Competence.manoeuvres",   attributs: ["coo", "ada"], categorie: "physique" },
+  /* Aptitudes physiques */
+  acrobatieEquilibre: { label: "POLARIS.Competence.acrobatieEquilibre", attributs: ["coo","coo"], categorie: "aptitudesPhysiques", marqueurs: ["limitative"] },
+  athletisme: { label: "POLARIS.Competence.athletisme", attributs: ["for","coo"], categorie: "aptitudesPhysiques" },
+  endurance: { label: "POLARIS.Competence.endurance", attributs: ["con","vol"], categorie: "aptitudesPhysiques", marqueurs: ["limitative"] },
+  escalade: { label: "POLARIS.Competence.escalade", attributs: ["for","coo"], categorie: "aptitudesPhysiques" },
+  manoeuvres0G: { label: "POLARIS.Competence.manoeuvres0G", attributs: ["coo","ada"], categorie: "aptitudesPhysiques", marqueurs: ["limitative"] },
+  manoeuvresSousMarines: { label: "POLARIS.Competence.manoeuvresSousMarines", attributs: ["for","coo"], categorie: "aptitudesPhysiques", marqueurs: ["limitative"] },
+  respirationFoe: { label: "POLARIS.Competence.respirationFoe", attributs: ["con","vol"], categorie: "aptitudesPhysiques", maitriseDepart: -3 },
 
-  contact:      { label: "POLARIS.Competence.contact",      attributs: ["for", "coo"], categorie: "combat" },
-  tir:          { label: "POLARIS.Competence.tir",          attributs: ["per", "coo"], categorie: "combat" },
-  artsMartiaux: { label: "POLARIS.Competence.artsMartiaux", attributs: ["coo", "ada"], categorie: "combat" },
+  /* Combat (contact) */
+  armesLourdesContact: { label: "POLARIS.Competence.armesLourdesContact", attributs: ["for","for"], categorie: "combatContact" },
+  armesSpecialesContact: { label: "POLARIS.Competence.armesSpecialesContact", attributs: null, categorie: "combatContact", famille: true, abstraite: true },
+  /* armesSpecialesContact — membres de la famille. */
+  armeSpecialeFouet: { label: "POLARIS.Competence.armeSpecialeFouet", attributs: null, categorie: "combatContact", parent: "armesSpecialesContact", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armeSpecialeChaine: { label: "POLARIS.Competence.armeSpecialeChaine", attributs: null, categorie: "combatContact", parent: "armesSpecialesContact", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armeSpecialeLasso: { label: "POLARIS.Competence.armeSpecialeLasso", attributs: null, categorie: "combatContact", parent: "armesSpecialesContact", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armeSpecialeFilet: { label: "POLARIS.Competence.armeSpecialeFilet", attributs: null, categorie: "combatContact", parent: "armesSpecialesContact", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armeSpecialeGrappin: { label: "POLARIS.Competence.armeSpecialeGrappin", attributs: null, categorie: "combatContact", parent: "armesSpecialesContact", maitriseDepart: -3, marqueurs: ["reservee"] },
+  artsMartiaux: { label: "POLARIS.Competence.artsMartiaux", attributs: ["coo","ada"], categorie: "combatContact", famille: true, abstraite: true, marqueurs: ["limitative"] },
+  /* artsMartiaux — membres de la famille. */
+  artsMartiauxLutte: { label: "POLARIS.Competence.artsMartiauxLutte", attributs: ["coo","ada"], categorie: "combatContact", parent: "artsMartiaux", maitriseDepart: -3, marqueurs: ["limitative"] },
+  artsMartiauxDefensives: { label: "POLARIS.Competence.artsMartiauxDefensives", attributs: ["coo","ada"], categorie: "combatContact", parent: "artsMartiaux", maitriseDepart: -3, marqueurs: ["limitative"] },
+  artsMartiauxOffensives: { label: "POLARIS.Competence.artsMartiauxOffensives", attributs: ["coo","ada"], categorie: "combatContact", parent: "artsMartiaux", maitriseDepart: -3, marqueurs: ["limitative"] },
+  combatMainsNues: { label: "POLARIS.Competence.combatMainsNues", attributs: ["for","coo"], categorie: "combatContact" },
+  combatArme: { label: "POLARIS.Competence.combatArme", attributs: ["for","coo"], categorie: "combatContact" },
 
-  persuasion:   { label: "POLARIS.Competence.persuasion",   attributs: ["pre", "int"], categorie: "sociale" },
-  intimidation: { label: "POLARIS.Competence.intimidation", attributs: ["pre", "vol"], categorie: "sociale" },
+  /* Combat (tir) */
+  armesDeJet: { label: "POLARIS.Competence.armesDeJet", attributs: ["coo","per"], categorie: "combatTir", maitriseDepart: -3 },
+  armesDePoing: { label: "POLARIS.Competence.armesDePoing", attributs: ["coo","per"], categorie: "combatTir" },
+  armesDeTrait: { label: "POLARIS.Competence.armesDeTrait", attributs: ["coo","per"], categorie: "combatTir", maitriseDepart: -3 },
+  armesLourdesTir: { label: "POLARIS.Competence.armesLourdesTir", attributs: ["coo","per"], categorie: "combatTir", maitriseDepart: -3 },
+  armesSpecialesTir: { label: "POLARIS.Competence.armesSpecialesTir", attributs: null, categorie: "combatTir", famille: true, abstraite: true },
+  /* armesSpecialesTir — membres de la famille. */
+  armeSpecialeLanceGrenade: { label: "POLARIS.Competence.armeSpecialeLanceGrenade", attributs: ["for","coo"], categorie: "combatTir", parent: "armesSpecialesTir", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armeSpecialeLanceFlamme: { label: "POLARIS.Competence.armeSpecialeLanceFlamme", attributs: ["coo","per"], categorie: "combatTir", parent: "armesSpecialesTir", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armeSpecialeLanceurPoignet: { label: "POLARIS.Competence.armeSpecialeLanceurPoignet", attributs: ["coo","per"], categorie: "combatTir", parent: "armesSpecialesTir", maitriseDepart: -3, marqueurs: ["reservee"] },
+  fusilsArmesEpaule: { label: "POLARIS.Competence.fusilsArmesEpaule", attributs: ["coo","per"], categorie: "combatTir" },
+  tirDePrecision: { label: "POLARIS.Competence.tirDePrecision", attributs: ["per","vol"], categorie: "combatTir", maitriseDepart: -3, marqueurs: ["limitative"] },
 
-  vigilance:    { label: "POLARIS.Competence.vigilance",    attributs: ["per", "int"], categorie: "technique" }
+  /* Communication / Relations sociales */
+  analyseEmpathique: { label: "POLARIS.Competence.analyseEmpathique", attributs: ["int","per"], categorie: "communication", maitriseDepart: -3 },
+  commandement: { label: "POLARIS.Competence.commandement", attributs: ["vol","pre"], categorie: "communication" },
+  eloquencePersuasion: { label: "POLARIS.Competence.eloquencePersuasion", attributs: ["int","pre"], categorie: "communication", marqueurs: ["prerequis"] },
+  entregentSeduction: { label: "POLARIS.Competence.entregentSeduction", attributs: ["pre","pre"], categorie: "communication" },
+  expressionArtistique: { label: "POLARIS.Competence.expressionArtistique", attributs: null, categorie: "communication", famille: true, abstraite: true },
+  /* expressionArtistique — membres de la famille. */
+  artChant: { label: "POLARIS.Competence.artChant", attributs: ["int","pre"], categorie: "communication", parent: "expressionArtistique", maitriseDepart: -3 },
+  artComedie: { label: "POLARIS.Competence.artComedie", attributs: ["ada","pre"], categorie: "communication", parent: "expressionArtistique", maitriseDepart: -3 },
+  artDanse: { label: "POLARIS.Competence.artDanse", attributs: ["coo","pre"], categorie: "communication", parent: "expressionArtistique", maitriseDepart: -3 },
+  artInstrument: { label: "POLARIS.Competence.artInstrument", attributs: ["coo","per"], categorie: "communication", parent: "expressionArtistique", maitriseDepart: -3, marqueurs: ["reservee"] },
+  intimidation: { label: "POLARIS.Competence.intimidation", attributs: ["vol","pre"], categorie: "communication" },
+
+  /* Compétences spéciales */
+  absence: { label: "POLARIS.Competence.absence", attributs: ["ada","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  bouclierMental: { label: "POLARIS.Competence.bouclierMental", attributs: ["vol","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  controleCorporel: { label: "POLARIS.Competence.controleCorporel", attributs: ["con","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  controleMutations: { label: "POLARIS.Competence.controleMutations", attributs: null, categorie: "competencesSpeciales", maitriseDepart: -3, famille: true, speciale: true, marqueurs: ["reservee"] },
+  hybride: { label: "POLARIS.Competence.hybride", attributs: ["con","coo"], categorie: "competencesSpeciales", speciale: true },
+  hypnose: { label: "POLARIS.Competence.hypnose", attributs: ["vol","pre"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  maitriseEchoPolaris: { label: "POLARIS.Competence.maitriseEchoPolaris", attributs: ["int","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  maitriseEffetPolaris: { label: "POLARIS.Competence.maitriseEffetPolaris", attributs: ["vol","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  meditation: { label: "POLARIS.Competence.meditation", attributs: ["vol","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, speciale: true, marqueurs: ["reservee"] },
+  pouvoirsEffetPolaris: { label: "POLARIS.Competence.pouvoirsEffetPolaris", attributs: ["int","vol"], categorie: "competencesSpeciales", maitriseDepart: -3, famille: true, speciale: true, marqueurs: ["reservee"] },
+
+  /* Connaissances */
+  bureaucratie: { label: "POLARIS.Competence.bureaucratie", attributs: ["int","int"], categorie: "connaissances", marqueurs: ["prerequis"] },
+  cartographie: { label: "POLARIS.Competence.cartographie", attributs: ["int","int"], categorie: "connaissances", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  commerceTrafic: { label: "POLARIS.Competence.commerceTrafic", attributs: ["int","pre"], categorie: "connaissances", famille: true, abstraite: true, marqueurs: ["prerequis"] },
+  /* commerceTrafic — membres de la famille. */
+  commerceArmes: { label: "POLARIS.Competence.commerceArmes", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  commerceDenrees: { label: "POLARIS.Competence.commerceDenrees", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 5 }] },
+  commerceDrogues: { label: "POLARIS.Competence.commerceDrogues", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  commerceInformations: { label: "POLARIS.Competence.commerceInformations", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 5 }] },
+  commerceMaterielMedical: { label: "POLARIS.Competence.commerceMaterielMedical", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  commerceMatieresPremieres: { label: "POLARIS.Competence.commerceMatieresPremieres", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 5 }] },
+  commerceVehicules: { label: "POLARIS.Competence.commerceVehicules", attributs: ["int","pre"], categorie: "connaissances", parent: "commerceTrafic", maitriseDepart: -3, marqueurs: ["prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  connaissanceNations: { label: "POLARIS.Competence.connaissanceNations", attributs: ["int","int"], categorie: "connaissances", famille: true, abstraite: true, marqueurs: ["limitative","progressionNaturelle"] },
+  /* connaissanceNations — membres de la famille. */
+  connaissanceHegemonie: { label: "POLARIS.Competence.connaissanceHegemonie", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceLigueRouge: { label: "POLARIS.Competence.connaissanceLigueRouge", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceRepubliqueCorail: { label: "POLARIS.Competence.connaissanceRepubliqueCorail", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceEquinoxe: { label: "POLARIS.Competence.connaissanceEquinoxe", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceEtatsRift: { label: "POLARIS.Competence.connaissanceEtatsRift", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceVeilleurs: { label: "POLARIS.Competence.connaissanceVeilleurs", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceMercenaires: { label: "POLARIS.Competence.connaissanceMercenaires", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissancePirates: { label: "POLARIS.Competence.connaissancePirates", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceCulteTrident: { label: "POLARIS.Competence.connaissanceCulteTrident", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceSoleilNoir: { label: "POLARIS.Competence.connaissanceSoleilNoir", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  connaissanceContrebandiers: { label: "POLARIS.Competence.connaissanceContrebandiers", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceCrimeOrganise: { label: "POLARIS.Competence.connaissanceCrimeOrganise", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", marqueurs: ["limitative","progressionNaturelle"] },
+  connaissanceGeneticiens: { label: "POLARIS.Competence.connaissanceGeneticiens", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  connaissanceAllianceAzure: { label: "POLARIS.Competence.connaissanceAllianceAzure", attributs: ["int","int"], categorie: "connaissances", parent: "connaissanceNations", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  cryptographie: { label: "POLARIS.Competence.cryptographie", attributs: ["int","int"], categorie: "connaissances", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  educationCultureGenerale: { label: "POLARIS.Competence.educationCultureGenerale", attributs: ["int","int"], categorie: "connaissances", maitriseDepart: -3 },
+  jeu: { label: "POLARIS.Competence.jeu", attributs: ["int","vol"], categorie: "connaissances" },
+  navigation: { label: "POLARIS.Competence.navigation", attributs: ["int","int"], categorie: "connaissances", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  rechercheInformations: { label: "POLARIS.Competence.rechercheInformations", attributs: ["int","int"], categorie: "connaissances", maitriseDepart: -3, marqueurs: ["prerequis"] },
+  sciencesSpecialisees: { label: "POLARIS.Competence.sciencesSpecialisees", attributs: ["int","int"], categorie: "connaissances", famille: true, abstraite: true, marqueurs: ["prerequis"] },
+  /* sciencesSpecialisees — membres de la famille. */
+  sciencesAdministration: { label: "POLARIS.Competence.sciencesAdministration", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesArmement: { label: "POLARIS.Competence.sciencesArmement", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesAstrophysique: { label: "POLARIS.Competence.sciencesAstrophysique", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesPhysiqueChimie", niveau: 10 }] },
+  sciencesBiologiePhysiologie: { label: "POLARIS.Competence.sciencesBiologiePhysiologie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesBotanique: { label: "POLARIS.Competence.sciencesBotanique", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesBiologiePhysiologie", niveau: 7 }] },
+  sciencesCriminalistique: { label: "POLARIS.Competence.sciencesCriminalistique", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesDroit: { label: "POLARIS.Competence.sciencesDroit", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesFinances: { label: "POLARIS.Competence.sciencesFinances", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesEconomie: { label: "POLARIS.Competence.sciencesEconomie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesGeologie: { label: "POLARIS.Competence.sciencesGeologie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesPhysiqueChimie", niveau: 5 }] },
+  sciencesGeographie: { label: "POLARIS.Competence.sciencesGeographie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesHistoire: { label: "POLARIS.Competence.sciencesHistoire", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesMedecine: { label: "POLARIS.Competence.sciencesMedecine", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesBiologiePhysiologie", niveau: 7 }] },
+  sciencesPharmacologie: { label: "POLARIS.Competence.sciencesPharmacologie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesBiologiePhysiologie", niveau: 5 }, { cle: "sciencesPhysiqueChimie", niveau: 5 }] },
+  sciencesPhysiqueChimie: { label: "POLARIS.Competence.sciencesPhysiqueChimie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesPsychologie: { label: "POLARIS.Competence.sciencesPsychologie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesPolitiques: { label: "POLARIS.Competence.sciencesPolitiques", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesGeographie", niveau: 7 }, { cle: "sciencesHistoire", niveau: 5 }] },
+  sciencesSociologie: { label: "POLARIS.Competence.sciencesSociologie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  sciencesZoologie: { label: "POLARIS.Competence.sciencesZoologie", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesBiologiePhysiologie", niveau: 7 }] },
+  sciencesPoisons: { label: "POLARIS.Competence.sciencesPoisons", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee"] },
+  sciencesDrogues: { label: "POLARIS.Competence.sciencesDrogues", attributs: ["int","int"], categorie: "connaissances", parent: "sciencesSpecialisees", maitriseDepart: -3, marqueurs: ["reservee"] },
+  strategie: { label: "POLARIS.Competence.strategie", attributs: ["int","int"], categorie: "connaissances", maitriseDepart: -3, marqueurs: ["prerequis"] },
+  tactique: { label: "POLARIS.Competence.tactique", attributs: ["int","ada"], categorie: "connaissances", famille: true, abstraite: true },
+  /* tactique — membres de la famille. */
+  tactiqueNaval: { label: "POLARIS.Competence.tactiqueNaval", attributs: ["int","ada"], categorie: "connaissances", parent: "tactique", maitriseDepart: -3 },
+  tactiqueSouterrain: { label: "POLARIS.Competence.tactiqueSouterrain", attributs: ["int","ada"], categorie: "connaissances", parent: "tactique" },
+  tactiqueTerrestre: { label: "POLARIS.Competence.tactiqueTerrestre", attributs: ["int","ada"], categorie: "connaissances", parent: "tactique" },
+  tactiqueCommando: { label: "POLARIS.Competence.tactiqueCommando", attributs: ["int","ada"], categorie: "connaissances", parent: "tactique" },
+
+  /* Furtivité / Subterfuge */
+  camouflageDissimulation: { label: "POLARIS.Competence.camouflageDissimulation", attributs: ["per","ada"], categorie: "furtivite", maitriseDepart: -3 },
+  deguisementImitation: { label: "POLARIS.Competence.deguisementImitation", attributs: ["ada","pre"], categorie: "furtivite", maitriseDepart: -3 },
+  discretionFilature: { label: "POLARIS.Competence.discretionFilature", attributs: ["per","ada"], categorie: "furtivite" },
+  evasion: { label: "POLARIS.Competence.evasion", attributs: ["coo","vol"], categorie: "furtivite", maitriseDepart: -3, marqueurs: ["reservee"] },
+  furtiviteDeplacementSilencieux: { label: "POLARIS.Competence.furtiviteDeplacementSilencieux", attributs: ["per","ada"], categorie: "furtivite", marqueurs: ["limitative"] },
+  pickpocket: { label: "POLARIS.Competence.pickpocket", attributs: ["coo","ada"], categorie: "furtivite", maitriseDepart: -3 },
+
+  /* Langues / Langages */
+  langageDesSignes: { label: "POLARIS.Competence.langageDesSignes", attributs: ["coo","per"], categorie: "langues", maitriseDepart: -3, famille: true, abstraite: true, marqueurs: ["reservee"] },
+  /* langageDesSignes — membres de la famille. */
+  signesMilitaire: { label: "POLARIS.Competence.signesMilitaire", attributs: ["coo","per"], categorie: "langues", parent: "langageDesSignes", maitriseDepart: -3, marqueurs: ["reservee"] },
+  signesDiplomatique: { label: "POLARIS.Competence.signesDiplomatique", attributs: ["coo","per"], categorie: "langues", parent: "langageDesSignes", maitriseDepart: -3, marqueurs: ["reservee"] },
+  langagesSpecialises: { label: "POLARIS.Competence.langagesSpecialises", attributs: ["int","int"], categorie: "langues", famille: true, abstraite: true, marqueurs: ["limitative","progressionNaturelle"] },
+
+  /* Langages spécifiques — membres de la famille, page 193.
+     Propres à un groupe social, une profession ou une espèce. La « racine »
+     compte : une langue dérivée se comprend depuis sa racine, à la moitié du
+     niveau (voir POLARIS.divisionLangueRacine). */
+  langageAbsolan: { label: "POLARIS.Competence.langageAbsolan", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["neoAzuran"] },
+  langageEnefid: { label: "POLARIS.Competence.langageEnefid", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  langageExon: { label: "POLARIS.Competence.langageExon", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  langageForeur: { label: "POLARIS.Competence.langageForeur", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  langageInesis: { label: "POLARIS.Competence.langageInesis", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langageIthraxien: { label: "POLARIS.Competence.langageIthraxien", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["neoAzuran"] },
+  langageKlan: { label: "POLARIS.Competence.langageKlan", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["neoAzuran"] },
+  langageLevean: { label: "POLARIS.Competence.langageLevean", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  langageMetalan: { label: "POLARIS.Competence.langageMetalan", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["isitacAzureen"] },
+  langageNeolan: { label: "POLARIS.Competence.langageNeolan", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langageSirs: { label: "POLARIS.Competence.langageSirs", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", marqueurs: ["limitative","progressionNaturelle"], racines: ["neoAzuran"] },
+  langageSoleen: { label: "POLARIS.Competence.langageSoleen", attributs: ["int","int"], categorie: "langues", parent: "langagesSpecialises", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  languesEtrangeres: { label: "POLARIS.Competence.languesEtrangeres", attributs: ["int","int"], categorie: "langues", famille: true, abstraite: true, marqueurs: ["limitative","progressionNaturelle"] },
+  /* Langues étrangères — membres de la famille, page 192. */
+  langueAmaneun: { label: "POLARIS.Competence.langueAmaneun", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["inconnue"] },
+  langueAzran: { label: "POLARIS.Competence.langueAzran", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["dialecteAzuran"] },
+  langueGashklar: { label: "POLARIS.Competence.langueGashklar", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["ancienTemps"] },
+  langueIsitac: { label: "POLARIS.Competence.langueIsitac", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueLesarach: { label: "POLARIS.Competence.langueLesarach", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["inconnue"] },
+  langueLexzion: { label: "POLARIS.Competence.langueLexzion", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["arkonien"] },
+  langueNeoAzuran: { label: "POLARIS.Competence.langueNeoAzuran", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueNezrais: { label: "POLARIS.Competence.langueNezrais", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["ancienTemps"] },
+  langueOceane: { label: "POLARIS.Competence.langueOceane", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueOlakar: { label: "POLARIS.Competence.langueOlakar", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueOlosak: { label: "POLARIS.Competence.langueOlosak", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueOssyrien: { label: "POLARIS.Competence.langueOssyrien", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueRenarean: { label: "POLARIS.Competence.langueRenarean", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azuran"] },
+  langueTernaset: { label: "POLARIS.Competence.langueTernaset", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["inconnue"] },
+  langueTrashan: { label: "POLARIS.Competence.langueTrashan", attributs: ["int","int"], categorie: "langues", parent: "languesEtrangeres", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["arkonien","ancienTemps"] },
+  languesAnciennes: { label: "POLARIS.Competence.languesAnciennes", attributs: ["int","int"], categorie: "langues", famille: true, abstraite: true, marqueurs: ["limitative","progressionNaturelle"] },
+  /* Langues anciennes — membres de la famille, page 192. */
+  langueArkonien: { label: "POLARIS.Competence.langueArkonien", attributs: ["int","int"], categorie: "langues", parent: "languesAnciennes", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["inconnue"] },
+  langueAzuran: { label: "POLARIS.Competence.langueAzuran", attributs: ["int","int"], categorie: "langues", parent: "languesAnciennes", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["azureen"] },
+  langueAzureen: { label: "POLARIS.Competence.langueAzureen", attributs: ["int","int"], categorie: "langues", parent: "languesAnciennes", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["ancienTemps"] },
+  langueGateen: { label: "POLARIS.Competence.langueGateen", attributs: ["int","int"], categorie: "langues", parent: "languesAnciennes", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"], racines: ["latin"] },
+
+  /* Pilotage */
+  manoeuvreArmures: { label: "POLARIS.Competence.manoeuvreArmures", attributs: ["coo","ada"], categorie: "pilotage", famille: true, abstraite: true, marqueurs: ["limitative"] },
+  /* manoeuvreArmures — membres de la famille. */
+  armureAtmospheriques: { label: "POLARIS.Competence.armureAtmospheriques", attributs: ["coo","ada"], categorie: "pilotage", parent: "manoeuvreArmures", maitriseDepart: -3, marqueurs: ["reservee","limitative"] },
+  armureExternes: { label: "POLARIS.Competence.armureExternes", attributs: ["coo","ada"], categorie: "pilotage", parent: "manoeuvreArmures", marqueurs: ["limitative"] },
+  armureSousMarines: { label: "POLARIS.Competence.armureSousMarines", attributs: ["coo","ada"], categorie: "pilotage", parent: "manoeuvreArmures", marqueurs: ["limitative"] },
+  armureSpatiales: { label: "POLARIS.Competence.armureSpatiales", attributs: ["coo","ada"], categorie: "pilotage", parent: "manoeuvreArmures", maitriseDepart: -3, marqueurs: ["limitative"] },
+  pilotage: { label: "POLARIS.Competence.pilotage", attributs: null, categorie: "pilotage", famille: true, abstraite: true },
+
+  /* Pilotage — sous-compétences de la famille, page 195.
+     Le livre donne un couple d'attributs par véhicule : la famille elle-même
+     n'a pas de valeur jouable, ce sont ces entrées qui se lancent. */
+  pilotageChasseursSousMarins: { label: "POLARIS.Competence.pilotageChasseursSousMarins", attributs: ["int","ada"], categorie: "pilotage", parent: "pilotage", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "athletisme", niveau: 10 }, { cle: "educationCultureGenerale", niveau: 10 }] },
+  pilotageChasseursAtmospheriques: { label: "POLARIS.Competence.pilotageChasseursAtmospheriques", attributs: ["int","ada"], categorie: "pilotage", parent: "pilotage", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "athletisme", niveau: 10 }, { cle: "educationCultureGenerale", niveau: 10 }] },
+  pilotageNaviresLegers: { label: "POLARIS.Competence.pilotageNaviresLegers", attributs: ["int","int"], categorie: "pilotage", parent: "pilotage", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 7 }] },
+  pilotageNaviresLourds: { label: "POLARIS.Competence.pilotageNaviresLourds", attributs: ["int","int"], categorie: "pilotage", parent: "pilotage", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "pilotageNaviresLegers", niveau: 10 }] },
+  pilotageEnginsSpatiaux: { label: "POLARIS.Competence.pilotageEnginsSpatiaux", attributs: ["int","int"], categorie: "pilotage", parent: "pilotage", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  pilotageVehiculesSouterrains: { label: "POLARIS.Competence.pilotageVehiculesSouterrains", attributs: ["int","ada"], categorie: "pilotage", parent: "pilotage", maitriseDepart: -3, marqueurs: ["reservee"] },
+  pilotageVehiculesSol: { label: "POLARIS.Competence.pilotageVehiculesSol", attributs: ["per","ada"], categorie: "pilotage", parent: "pilotage" },
+  pilotageScootersSousMarins: { label: "POLARIS.Competence.pilotageScootersSousMarins", attributs: ["per","ada"], categorie: "pilotage", parent: "pilotage" },
+  telepilotage: { label: "POLARIS.Competence.telepilotage", attributs: ["int","ada"], categorie: "pilotage", maitriseDepart: -3 },
+
+  /* Survie / Extérieur */
+  chassePistage: { label: "POLARIS.Competence.chassePistage", attributs: ["per","ada"], categorie: "survie", maitriseDepart: -3, marqueurs: ["reservee"] },
+  connaissanceMilieu: { label: "POLARIS.Competence.connaissanceMilieu", attributs: ["int","ada"], categorie: "survie", famille: true, abstraite: true, marqueurs: ["limitative","progressionNaturelle"] },
+  /* connaissanceMilieu — membres de la famille. */
+  milieuCites: { label: "POLARIS.Competence.milieuCites", attributs: ["int","ada"], categorie: "survie", parent: "connaissanceMilieu", marqueurs: ["limitative","progressionNaturelle"] },
+  milieuOceans: { label: "POLARIS.Competence.milieuOceans", attributs: ["int","ada"], categorie: "survie", parent: "connaissanceMilieu", maitriseDepart: -3, marqueurs: ["limitative","progressionNaturelle"] },
+  milieuSouterrains: { label: "POLARIS.Competence.milieuSouterrains", attributs: ["int","ada"], categorie: "survie", parent: "connaissanceMilieu", maitriseDepart: -3, marqueurs: ["limitative","progressionNaturelle"] },
+  milieuSurface: { label: "POLARIS.Competence.milieuSurface", attributs: ["int","ada"], categorie: "survie", parent: "connaissanceMilieu", maitriseDepart: -3, marqueurs: ["reservee","limitative","progressionNaturelle"] },
+  observation: { label: "POLARIS.Competence.observation", attributs: ["per","vol"], categorie: "survie" },
+  orientation: { label: "POLARIS.Competence.orientation", attributs: ["per","ada"], categorie: "survie" },
+  survie: { label: "POLARIS.Competence.survie", attributs: ["ada","vol"], categorie: "survie", maitriseDepart: -3, marqueurs: ["reservee"] },
+
+  /* Techniques */
+  analyseSonscans: { label: "POLARIS.Competence.analyseSonscans", attributs: ["int","ada"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armesEmbarquees: { label: "POLARIS.Competence.armesEmbarquees", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] },
+  armurerie: { label: "POLARIS.Competence.armurerie", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] },
+  aquacultureElevage: { label: "POLARIS.Competence.aquacultureElevage", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] },
+  artArtisanat: { label: "POLARIS.Competence.artArtisanat", attributs: ["int","per"], categorie: "techniques", maitriseDepart: -3, famille: true, abstraite: true, marqueurs: ["reservee"] },
+  /* artArtisanat — membres de la famille. */
+  artisanatCuisine: { label: "POLARIS.Competence.artisanatCuisine", attributs: ["int","per"], categorie: "techniques", parent: "artArtisanat", maitriseDepart: -3, marqueurs: ["reservee"] },
+  artisanatPeinture: { label: "POLARIS.Competence.artisanatPeinture", attributs: ["int","per"], categorie: "techniques", parent: "artArtisanat", maitriseDepart: -3, marqueurs: ["reservee"] },
+  artisanatSculpture: { label: "POLARIS.Competence.artisanatSculpture", attributs: ["int","per"], categorie: "techniques", parent: "artArtisanat", maitriseDepart: -3, marqueurs: ["reservee"] },
+  artisanatArmesBlanches: { label: "POLARIS.Competence.artisanatArmesBlanches", attributs: ["int","per"], categorie: "techniques", parent: "artArtisanat", maitriseDepart: -3, marqueurs: ["reservee"] },
+  artisanatInstruments: { label: "POLARIS.Competence.artisanatInstruments", attributs: ["int","per"], categorie: "techniques", parent: "artArtisanat", maitriseDepart: -3, marqueurs: ["reservee"] },
+  chirurgie: { label: "POLARIS.Competence.chirurgie", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  dressage: { label: "POLARIS.Competence.dressage", attributs: ["vol","pre"], categorie: "techniques", maitriseDepart: -3 },
+  electronique: { label: "POLARIS.Competence.electronique", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  espionnageSurveillance: { label: "POLARIS.Competence.espionnageSurveillance", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] },
+  explosifs: { label: "POLARIS.Competence.explosifs", attributs: ["int","vol"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] },
+  falsification: { label: "POLARIS.Competence.falsification", attributs: ["int","per"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  genieTechnique: { label: "POLARIS.Competence.genieTechnique", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, famille: true, abstraite: true, marqueurs: ["reservee","prerequis"] },
+  /* Génie technique — membres de la famille, page 191. Chacun hérite du
+     pré-requis Éducation/Culture générale 10 de la famille, et y ajoute le
+     sien. Les réparations simples relèvent d'Électronique ou de Mécanique. */
+  genieArchitectureCivile: { label: "POLARIS.Competence.genieArchitectureCivile", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  genieArchitectureNavale: { label: "POLARIS.Competence.genieArchitectureNavale", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }] },
+  genieBionique: { label: "POLARIS.Competence.genieBionique", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesBiologiePhysiologie", niveau: 10 }] },
+  genieBiotechnologie: { label: "POLARIS.Competence.genieBiotechnologie", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesBiologiePhysiologie", niveau: 10 }] },
+  genieElectroniqueInformatique: { label: "POLARIS.Competence.genieElectroniqueInformatique", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "electronique", niveau: 10 }, { cle: "informatique", niveau: 10 }] },
+  genieLogiciels: { label: "POLARIS.Competence.genieLogiciels", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "informatique", niveau: 10 }] },
+  genieNanotechnologie: { label: "POLARIS.Competence.genieNanotechnologie", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "sciencesPhysiqueChimie", niveau: 10 }] },
+  genieRobotique: { label: "POLARIS.Competence.genieRobotique", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "electronique", niveau: 10 }, { cle: "informatique", niveau: 10 }] },
+  genieTelecommunications: { label: "POLARIS.Competence.genieTelecommunications", attributs: ["int","int"], categorie: "techniques", parent: "genieTechnique", maitriseDepart: -3, marqueurs: ["reservee","prerequis"], prerequis: [{ cle: "educationCultureGenerale", niveau: 10 }, { cle: "electronique", niveau: 10 }, { cle: "informatique", niveau: 10 }] },
+  informatique: { label: "POLARIS.Competence.informatique", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["prerequis"] },
+  mecanique: { label: "POLARIS.Competence.mecanique", attributs: ["int","int"], categorie: "techniques", famille: true, abstraite: true, marqueurs: ["prerequis"] },
+  /* mecanique — membres de la famille. */
+  mecaniqueExoArmures: { label: "POLARIS.Competence.mecaniqueExoArmures", attributs: ["int","int"], categorie: "techniques", parent: "mecanique", marqueurs: ["prerequis"], prerequis: [{ cle: "electronique", niveau: 5 }] },
+  mecaniqueNavires: { label: "POLARIS.Competence.mecaniqueNavires", attributs: ["int","int"], categorie: "techniques", parent: "mecanique", marqueurs: ["prerequis"], prerequis: [{ cle: "electronique", niveau: 5 }] },
+  mecaniqueChasseursAtmospheriques: { label: "POLARIS.Competence.mecaniqueChasseursAtmospheriques", attributs: ["int","int"], categorie: "techniques", parent: "mecanique", marqueurs: ["prerequis"], prerequis: [{ cle: "electronique", niveau: 5 }] },
+  mecaniqueVehiculesSouterrains: { label: "POLARIS.Competence.mecaniqueVehiculesSouterrains", attributs: ["int","int"], categorie: "techniques", parent: "mecanique", marqueurs: ["prerequis"], prerequis: [{ cle: "electronique", niveau: 5 }] },
+  mecaniqueVehiculesSol: { label: "POLARIS.Competence.mecaniqueVehiculesSol", attributs: ["int","int"], categorie: "techniques", parent: "mecanique", marqueurs: ["prerequis"], prerequis: [{ cle: "electronique", niveau: 5 }] },
+  mecaniqueGenerateurs: { label: "POLARIS.Competence.mecaniqueGenerateurs", attributs: ["int","int"], categorie: "techniques", parent: "mecanique", marqueurs: ["prerequis"], prerequis: [{ cle: "electronique", niveau: 5 }] },
+  pieges: { label: "POLARIS.Competence.pieges", attributs: ["int","per"], categorie: "techniques", maitriseDepart: -3 },
+  piratageInformatique: { label: "POLARIS.Competence.piratageInformatique", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee","prerequis"] },
+  premiersSoins: { label: "POLARIS.Competence.premiersSoins", attributs: ["int","ada"], categorie: "techniques", maitriseDepart: -3 },
+  systemesSecurite: { label: "POLARIS.Competence.systemesSecurite", attributs: ["int","int"], categorie: "techniques", maitriseDepart: -3, marqueurs: ["reservee"] }
 };
 
 /** Bornes de saisie du niveau de maîtrise d'une compétence. */
 POLARIS.bornesMaitrise = { min: 0, max: 20 };
+
+/**
+ * Niveau de base d'une Connaissance des nations / organisations, selon le lien
+ * du personnage avec la communauté visée.
+ * Source : livre de base, page 188.
+ *
+ * ⚠️ Ce niveau dépend du PERSONNAGE, pas de la compétence : il ne peut donc pas
+ * être posé dans la table. Rien ne l'applique encore.
+ */
+POLARIS.niveauxConnaissanceCommunaute = {
+  origine: 3,
+  connue: 0,
+  lointaine: -3,
+  // « X » du livre : communauté inconnue, organisation secrète ou puissance
+  // ancienne — la compétence est alors réservée.
+  inconnue: null
+};
+
+/**
+ * Diviseur appliqué au niveau d'une compétence de langue quand on s'en sert
+ * pour comprendre une langue DÉRIVÉE de celle qu'on maîtrise.
+ *
+ * Source : livre de base, page 192 — « un personnage peut utiliser une
+ * Compétence développée dans une langue racine pour comprendre et utiliser ses
+ * langues dérivées, mais dans ce cas le niveau de la Compétence doit être
+ * divisé par deux ».
+ *
+ * ⚠️ La règle est saisie, mais rien ne l'applique encore : il faudrait pour
+ * cela que les jets sachent quelle langue est visée.
+ */
+POLARIS.divisionLangueRacine = 2;
+
+/**
+ * Racines connues des langues du monde. Une racine n'est pas toujours une
+ * compétence jouable : « aucune » se note par l'absence de racine.
+ * ⚠️ À COMPLÉTER — les langues étrangères et anciennes des pages 192 et 193
+ * ne sont pas encore saisies, seules leurs racines apparaissent ici.
+ */
+POLARIS.racinesLangues = {
+  azuran: "POLARIS.RacineLangue.azuran",
+  neoAzuran: "POLARIS.RacineLangue.neoAzuran",
+  azureen: "POLARIS.RacineLangue.azureen",
+  arkonien: "POLARIS.RacineLangue.arkonien",
+  ancienTemps: "POLARIS.RacineLangue.ancienTemps",
+  isitacAzureen: "POLARIS.RacineLangue.isitacAzureen",
+  dialecteAzuran: "POLARIS.RacineLangue.dialecteAzuran",
+  latin: "POLARIS.RacineLangue.latin",
+  // « Inconnue » n'est pas « aucune » : le monde a oublié d'où vient cette
+  // langue, ce qui n'est pas la même chose que ne descendre de rien.
+  inconnue: "POLARIS.RacineLangue.inconnue"
+};
+
+/**
+ * Une compétence doit-elle être acquise avant de figurer sur la fiche ?
+ *
+ * Deux cas, que le livre distingue mais qui se rejoignent à l'affichage :
+ * les compétences SPÉCIALES, procurées par une mutation ou un type génétique,
+ * et les compétences RÉSERVÉES — marquées « X » — qui « ne peuvent être
+ * utilisées tant qu'elles n'ont pas été apprises ».
+ *
+ * Sans ce filtre, la fiche listerait tout le catalogue du livre : les huit
+ * pilotages, les vingt sciences, les trente langues.
+ *
+ * @param {string} cle
+ * @returns {boolean}
+ */
+POLARIS.competenceAAcquerir = function (cle) {
+  const definition = POLARIS.competences[cle];
+  if (!definition) return false;
+  return Boolean(definition.speciale) || (definition.marqueurs ?? []).includes("reservee");
+};
 
 /** Les clés des compétences génériques, que tout personnage possède d'office. */
 POLARIS.competencesGeneriques = () =>

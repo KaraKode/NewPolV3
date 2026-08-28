@@ -104,7 +104,7 @@ export function calculerChances(acteur, cleCompetence, modificateur = 0) {
   const maitrise = acteur.system.competences?.[cleCompetence]?.maitrise ?? 0;
   const malusBlessure = acteur.system.sante?.malus ?? 0;
 
-  const detail = definition.attributs.map((cle) => {
+  const detail = (definition.attributs ?? []).map((cle) => {
     const actuel = attributs[cle]?.actuel ?? 0;
     return {
       cle,

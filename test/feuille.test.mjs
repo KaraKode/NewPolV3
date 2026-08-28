@@ -166,6 +166,599 @@ verifier("une blessure critique à la tête pénalise de -10", POLARIS.malusBles
 verifier("une blessure grave au corps ne pénalise pas", POLARIS.malusBlessure.grave.corps, 0);
 
 /* -------------------------------------------- */
+/*  Liste des compétences                       */
+/* -------------------------------------------- */
+
+console.log("\n— Compétences —");
+
+const competences = POLARIS.competences;
+
+// 83 viennent de la table page 184, plus les huit véhicules de la famille
+// Pilotage détaillés page 195.
+verifier("213 compétences déclarées", Object.keys(competences).length, 213);
+verifier(
+  "dont 83 issues de la table page 184",
+  Object.values(competences).filter((d) => !d.parent).length,
+  83
+);
+verifier("onze catégories", Object.keys(POLARIS.categoriesCompetence).length, 11);
+
+// Chaque compétence appartient à une catégorie déclarée, sans quoi elle
+// disparaîtrait silencieusement de la fiche.
+const categoriesInconnues = Object.entries(competences)
+  .filter(([, d]) => !POLARIS.categoriesCompetence[d.categorie])
+  .map(([cle]) => cle);
+verifier("aucune catégorie orpheline", categoriesInconnues, []);
+
+// Les attributs cités doivent exister. Une paire peut être nulle — le livre
+// écrit « variables » pour les familles dont l'arme ou la discipline décide.
+const attributsInvalides = Object.entries(competences)
+  .filter(([, d]) => d.attributs && (d.attributs.length !== 2 || d.attributs.some((a) => !POLARIS.attributs[a])))
+  .map(([cle]) => cle);
+verifier("tous les couples d'attributs sont valides", attributsInvalides, []);
+
+// Transcription de la table page 184, ligne par ligne, sur un échantillon
+// couvrant les onze catégories et les cas particuliers.
+const couples = {
+  acrobatieEquilibre: ["coo", "coo"],
+  athletisme: ["for", "coo"],
+  endurance: ["con", "vol"],
+  manoeuvresSousMarines: ["for", "coo"],
+  respirationFoe: ["con", "vol"],
+  armesLourdesContact: ["for", "for"],
+  artsMartiaux: ["coo", "ada"],
+  combatMainsNues: ["for", "coo"],
+  armesDePoing: ["coo", "per"],
+  tirDePrecision: ["per", "vol"],
+  entregentSeduction: ["pre", "pre"],
+  eloquencePersuasion: ["int", "pre"],
+  hybride: ["con", "coo"],
+  maitriseEffetPolaris: ["vol", "vol"],
+  maitriseEchoPolaris: ["int", "vol"],
+  bureaucratie: ["int", "int"],
+  commerceTrafic: ["int", "pre"],
+  jeu: ["int", "vol"],
+  tactique: ["int", "ada"],
+  deguisementImitation: ["ada", "pre"],
+  evasion: ["coo", "vol"],
+  pickpocket: ["coo", "ada"],
+  langageDesSignes: ["coo", "per"],
+  manoeuvreArmures: ["coo", "ada"],
+  telepilotage: ["int", "ada"],
+  observation: ["per", "vol"],
+  connaissanceMilieu: ["int", "ada"],
+  survie: ["ada", "vol"],
+  analyseSonscans: ["int", "ada"],
+  dressage: ["vol", "pre"],
+  explosifs: ["int", "vol"],
+  premiersSoins: ["int", "ada"],
+  pieges: ["int", "per"],
+  artArtisanat: ["int", "per"]
+};
+
+for (const [cle, attendu] of Object.entries(couples)) {
+  verifier(`${cle} → ${attendu.join("/").toUpperCase()}`, competences[cle]?.attributs, attendu);
+}
+
+// Les familles du livre — écrites « [...] » — n'ont pas de couple fixe ou
+// exigent une spécialisation. Leur base ne peut pas se calculer seule.
+const famillesAttendues = [
+  "armesSpecialesContact", "armesSpecialesTir", "artsMartiaux", "expressionArtistique",
+  "controleMutations", "pouvoirsEffetPolaris", "commerceTrafic", "connaissanceNations",
+  "sciencesSpecialisees", "tactique", "langageDesSignes", "langagesSpecialises",
+  "languesEtrangeres", "languesAnciennes", "manoeuvreArmures", "pilotage",
+  "connaissanceMilieu", "artArtisanat", "genieTechnique", "mecanique"
+];
+const familles = Object.entries(competences).filter(([, d]) => d.famille).map(([c]) => c);
+verifier("les familles du livre sont marquées", familles.sort(), famillesAttendues.sort());
+
+// « Variables » dans la table : l'arme ou la discipline décide des attributs.
+// Cinq familles sont dans ce cas. Trois d'entre elles ont depuis été
+// instanciées, et leurs membres ont bien reçu un couple — sauf les armes
+// spéciales de contact, pour lesquelles le livre s'en remet au meneur
+// (« selon l'arme, FOR/COO ou COO/COO la plupart du temps »).
+const sansAttributs = Object.entries(competences).filter(([, d]) => !d.attributs).map(([c]) => c);
+
+const famillesVariables = sansAttributs.filter((c) => competences[c].famille).sort();
+verifier(
+  "cinq familles à attributs variables",
+  famillesVariables,
+  ["armesSpecialesContact", "armesSpecialesTir", "controleMutations", "expressionArtistique", "pilotage"]
+);
+
+const membresVariables = sansAttributs.filter((c) => competences[c].parent).sort();
+verifier(
+  "seules les armes spéciales de contact restent sans couple",
+  membresVariables,
+  ["armeSpecialeChaine", "armeSpecialeFilet", "armeSpecialeFouet", "armeSpecialeGrappin", "armeSpecialeLasso"]
+);
+
+// Les autres familles variables ont bien donné un couple à chacun des leurs.
+for (const famille of ["pilotage", "expressionArtistique", "armesSpecialesTir"]) {
+  const membres = Object.entries(competences).filter(([, d]) => d.parent === famille);
+  verifier(
+    `${famille} : chaque membre a son couple d'attributs`,
+    membres.filter(([, d]) => !d.attributs).map(([c]) => c),
+    []
+  );
+}
+
+// Le « (-3) » du livre est un niveau de maîtrise de départ : les premiers
+// niveaux achetés servent à le résorber avant tout progrès positif.
+verifier("Éducation/Culture générale démarre à -3", competences.educationCultureGenerale.maitriseDepart, -3);
+verifier("Informatique démarre à -3", competences.informatique.maitriseDepart, -3);
+verifier("Athlétisme démarre à 0", competences.athletisme.maitriseDepart ?? 0, 0);
+
+// Une compétence réservée (X) démarre elle aussi à -3 une fois apprise.
+const reservees = Object.entries(competences).filter(([, d]) => (d.marqueurs ?? []).includes("reservee"));
+verifier(
+  "toute compétence réservée démarre à -3",
+  reservees.filter(([, d]) => d.maitriseDepart !== -3).map(([c]) => c),
+  []
+);
+
+// Les compétences spéciales du livre sont celles qui n'apparaissent qu'une fois
+// acquises : la catégorie et le drapeau doivent coïncider.
+const speciales = Object.entries(competences).filter(([, d]) => d.speciale).map(([c]) => c);
+const categorieSpeciale = Object.entries(competences)
+  .filter(([, d]) => d.categorie === "competencesSpeciales")
+  .map(([c]) => c);
+verifier("catégorie et drapeau « spéciale » coïncident", speciales.sort(), categorieSpeciale.sort());
+verifier("dix compétences spéciales", speciales.length, 10);
+
+// Tous les marqueurs cités doivent exister.
+const marqueursInvalides = Object.entries(competences)
+  .flatMap(([cle, d]) => (d.marqueurs ?? []).filter((m) => !POLARIS.marqueursCompetence[m]).map(() => cle));
+verifier("aucun marqueur inventé", marqueursInvalides, []);
+
+// La compétence Hybride est réservée aux hybrides : le livre le dit
+// explicitement, et c'est le type génétique qui la procure.
+verifier("Hybride est une compétence spéciale", competences.hybride.speciale, true);
+
+/* -------------------------------------------- */
+/*  Famille Pilotage                            */
+/* -------------------------------------------- */
+
+console.log("\n— Pilotage —");
+
+const pilotagesFamille = Object.entries(POLARIS.competences).filter(([, d]) => d.parent === "pilotage");
+
+verifier("huit véhicules pilotables", pilotagesFamille.length, 8);
+
+// La famille elle-même ne se joue pas : elle n'a pas d'attributs et le livre
+// ne lui donne aucune valeur. Elle ne doit pas figurer sur la fiche.
+verifier("la famille Pilotage est abstraite", POLARIS.competences.pilotage.abstraite, true);
+verifier("et sans couple d'attributs", POLARIS.competences.pilotage.attributs, null);
+
+// Transcription des couples, page 195.
+const couplesPilotage = {
+  pilotageChasseursSousMarins: ["int", "ada"],
+  pilotageChasseursAtmospheriques: ["int", "ada"],
+  pilotageNaviresLegers: ["int", "int"],
+  pilotageNaviresLourds: ["int", "int"],
+  pilotageEnginsSpatiaux: ["int", "int"],
+  pilotageVehiculesSouterrains: ["int", "ada"],
+  pilotageVehiculesSol: ["per", "ada"],
+  pilotageScootersSousMarins: ["per", "ada"]
+};
+
+for (const [cle, attendu] of Object.entries(couplesPilotage)) {
+  verifier(`${cle} → ${attendu.join("/").toUpperCase()}`, POLARIS.competences[cle]?.attributs, attendu);
+}
+
+// Six véhicules sur huit sont réservés : seuls les véhicules de sol et les
+// scooters se conduisent sans apprentissage formel.
+const libres = pilotagesFamille.filter(([cle]) => !POLARIS.competenceAAcquerir(cle)).map(([c]) => c);
+verifier(
+  "seuls deux pilotages sont libres",
+  libres.sort(),
+  ["pilotageScootersSousMarins", "pilotageVehiculesSol"]
+);
+
+// Une réservée démarre à -3 une fois apprise, une libre à 0.
+verifier("un chasseur sous-marin démarre à -3", POLARIS.competences.pilotageChasseursSousMarins.maitriseDepart, -3);
+verifier("un scooter démarre à 0", POLARIS.competences.pilotageScootersSousMarins.maitriseDepart ?? 0, 0);
+
+// Les pré-requis du livre sont saisis, et pointent vers des compétences réelles.
+// Les pré-requis pointent vers des compétences qui doivent exister. Le génie
+// technique réclamait deux sciences ; elles sont maintenant déclarées, et plus
+// aucune référence ne pend dans le vide.
+const prerequisNonResolus = [
+  ...new Set(
+    Object.values(POLARIS.competences)
+      .flatMap((d) => d.prerequis ?? [])
+      .map((p) => p.cle)
+      .filter((cle) => !POLARIS.competences[cle])
+  )
+].sort();
+
+verifier("tous les pré-requis visent une compétence déclarée", prerequisNonResolus, []);
+
+verifier(
+  "les navires lourds exigent les navires légers au niveau 10",
+  POLARIS.competences.pilotageNaviresLourds.prerequis,
+  [{ cle: "pilotageNaviresLegers", niveau: 10 }]
+);
+verifier(
+  "un chasseur sous-marin exige Athlétisme 10 et Éducation 10",
+  POLARIS.competences.pilotageChasseursSousMarins.prerequis.map((p) => p.cle).sort(),
+  ["athletisme", "educationCultureGenerale"]
+);
+
+// Toute compétence portant le marqueur « pré-requis » devrait finir par en
+// déclarer : ce test recense ce qu'il reste à saisir sans faire échouer la suite.
+const marqueesSansPrerequis = Object.entries(POLARIS.competences)
+  .filter(([, d]) => (d.marqueurs ?? []).includes("prerequis") && !(d.prerequis ?? []).length)
+  .map(([c]) => c);
+console.log(`NOTE   ${marqueesSansPrerequis.length} compétence(s) à pré-requis dont le détail reste à saisir`);
+
+/* -------------------------------------------- */
+/*  Visibilité des compétences sur la fiche     */
+/* -------------------------------------------- */
+
+console.log("\n— Visibilité —");
+
+// Sans filtre, la fiche listerait tout le catalogue. Le livre distingue les
+// compétences utilisables d'office de celles qu'il faut avoir apprises.
+const aAcquerir = Object.keys(POLARIS.competences).filter((c) => POLARIS.competenceAAcquerir(c));
+
+verifier("les spéciales sont à acquérir", POLARIS.competenceAAcquerir("hybride"), true);
+verifier("les réservées aussi", POLARIS.competenceAAcquerir("evasion"), true);
+verifier("mais pas Athlétisme", POLARIS.competenceAAcquerir("athletisme"), false);
+verifier("ni les scooters sous-marins", POLARIS.competenceAAcquerir("pilotageScootersSousMarins"), false);
+
+// Le filtre doit alléger la fiche sans la vider. Les compétences à acquérir
+// dépassent désormais les visibles — c'est normal : les trente-et-une langues
+// du monde sont toutes réservées, et personne ne les parle toutes.
+const visibles = Object.keys(POLARIS.competences).filter(
+  (c) => !POLARIS.competences[c].abstraite && !POLARIS.competenceAAcquerir(c)
+);
+verifier("une cinquantaine de compétences restent visibles", visibles.length >= 50, true);
+verifier("le filtre écarte plus de la moitié du catalogue", aAcquerir.length > visibles.length, true);
+
+// Les langues pèsent lourd dans ce qui est masqué : sans le filtre, chaque
+// fiche listerait les trente-et-une langues du monde.
+const languesMasquees = aAcquerir.filter((c) => POLARIS.competences[c].categorie === "langues");
+verifier("les langues représentent l'essentiel du masquage", languesMasquees.length, 33);
+
+/* -------------------------------------------- */
+/*  Langages spécifiques                        */
+/* -------------------------------------------- */
+
+console.log("\n— Langages spécifiques —");
+
+const langages = Object.entries(POLARIS.competences).filter(
+  ([, d]) => d.parent === "langagesSpecialises"
+);
+
+verifier("douze langages spécifiques", langages.length, 12);
+verifier("la famille est abstraite", POLARIS.competences.langagesSpecialises.abstraite, true);
+
+// Tous héritent des attributs et du caractère de la famille.
+verifier(
+  "tous en INT/INT",
+  langages.every(([, d]) => JSON.stringify(d.attributs) === JSON.stringify(["int", "int"])),
+  true
+);
+verifier(
+  "tous limitatifs et à progression naturelle",
+  langages.every(([, d]) =>
+    d.marqueurs.includes("limitative") && d.marqueurs.includes("progressionNaturelle")
+  ),
+  true
+);
+
+// Le jargon des bas-fonds est le seul que le livre ne réserve pas : il
+// s'attrape dans la rue, pas dans une école.
+const languesLibres = langages.filter(([cle]) => !POLARIS.competenceAAcquerir(cle)).map(([c]) => c);
+verifier("seul le jargon des bas-fonds est libre", languesLibres, ["langageSirs"]);
+verifier("et il démarre à 0", POLARIS.competences.langageSirs.maitriseDepart ?? 0, 0);
+verifier("un langage réservé démarre à -3", POLARIS.competences.langageInesis.maitriseDepart, -3);
+
+// Les racines transcrites, qui commandent la règle de la moitié du niveau.
+const racines = {
+  langageAbsolan: ["neoAzuran"],
+  langageInesis: ["azuran"],
+  langageIthraxien: ["neoAzuran"],
+  langageKlan: ["neoAzuran"],
+  langageMetalan: ["isitacAzureen"],
+  langageNeolan: ["azuran"],
+  langageSirs: ["neoAzuran"],
+  langageSoleen: ["azuran"]
+};
+for (const [cle, racine] of Object.entries(racines)) {
+  verifier(`${cle} dérive de ${racine.join(" et ")}`, POLARIS.competences[cle].racines, racine);
+}
+
+// Quatre langages n'ont aucune racine : le livre écrit « aucune ».
+const sansRacine = langages.filter(([, d]) => !(d.racines ?? []).length).map(([c]) => c);
+verifier(
+  "quatre langages sans racine",
+  sansRacine.sort(),
+  ["langageEnefid", "langageExon", "langageForeur", "langageLevean"]
+);
+
+// Toute racine citée doit être déclarée, sans quoi son libellé manquerait.
+const racinesNonDeclarees = Object.entries(POLARIS.competences)
+  .filter(([, d]) => (d.racines ?? []).some((r) => !POLARIS.racinesLangues[r]))
+  .map(([c]) => c);
+verifier("toutes les racines sont déclarées", racinesNonDeclarees, []);
+
+// La règle de la langue racine : moitié du niveau sur une langue dérivée.
+verifier("une langue dérivée se lit à la moitié du niveau", POLARIS.divisionLangueRacine, 2);
+
+// Les descriptions vivent à part, mais doivent couvrir tout le monde.
+const fichierLangages = JSON.parse(fs.readFileSync("data/langages.json", "utf8"));
+const sansDescription = langages
+  .filter(([cle]) => !fichierLangages.descriptions[cle])
+  .map(([c]) => c);
+verifier("chaque langage a sa description", sansDescription, []);
+
+/* -------------------------------------------- */
+/*  Langues étrangères et anciennes             */
+/* -------------------------------------------- */
+
+console.log("\n— Langues du monde —");
+
+const etrangeres = Object.entries(POLARIS.competences).filter(([, d]) => d.parent === "languesEtrangeres");
+const anciennes = Object.entries(POLARIS.competences).filter(([, d]) => d.parent === "languesAnciennes");
+
+verifier("quinze langues étrangères", etrangeres.length, 15);
+verifier("quatre langues anciennes", anciennes.length, 4);
+verifier("la famille des étrangères est abstraite", POLARIS.competences.languesEtrangeres.abstraite, true);
+verifier("celle des anciennes aussi", POLARIS.competences.languesAnciennes.abstraite, true);
+
+// Toutes réservées : aucune langue étrangère ne se parle sans l'avoir apprise.
+verifier(
+  "toutes les langues du monde sont réservées",
+  [...etrangeres, ...anciennes].filter(([cle]) => !POLARIS.competenceAAcquerir(cle)).map(([c]) => c),
+  []
+);
+
+// Transcription d'un échantillon couvrant les cas de racine.
+verifier("le néo-azuran descend de l'azuran", POLARIS.competences.langueNeoAzuran.racines, ["azuran"]);
+verifier("l'olosak d'Hégémonie aussi", POLARIS.competences.langueOlosak.racines, ["azuran"]);
+verifier("le léxzion vient de l'arkonien", POLARIS.competences.langueLexzion.racines, ["arkonien"]);
+verifier("l'azuran ancien vient de l'azuréen", POLARIS.competences.langueAzuran.racines, ["azureen"]);
+verifier("l'azuréen des langues de l'ancien temps", POLARIS.competences.langueAzureen.racines, ["ancienTemps"]);
+verifier("le gatéen du latin", POLARIS.competences.langueGateen.racines, ["latin"]);
+
+// Le trashan est la seule langue à deux racines : c'est pour lui que le champ
+// est un tableau plutôt qu'une chaîne.
+verifier("le trashan a deux racines", POLARIS.competences.langueTrashan.racines, ["arkonien", "ancienTemps"]);
+const plusieursRacines = Object.entries(POLARIS.competences)
+  .filter(([, d]) => (d.racines ?? []).length > 1)
+  .map(([c]) => c);
+verifier("et il est le seul", plusieursRacines, ["langueTrashan"]);
+
+// « Inconnue » n'est pas « aucune » : le livre distingue une langue dont
+// l'origine s'est perdue d'une langue qui ne descend de rien.
+const origineOubliee = Object.entries(POLARIS.competences)
+  .filter(([, d]) => (d.racines ?? []).includes("inconnue"))
+  .map(([c]) => c);
+verifier(
+  "quatre langues à l'origine oubliée",
+  origineOubliee.sort(),
+  ["langueAmaneun", "langueArkonien", "langueLesarach", "langueTernaset"]
+);
+
+// Toutes les langues du monde ont leur description.
+const fichierLangues = JSON.parse(fs.readFileSync("data/langages.json", "utf8"));
+verifier(
+  "chaque langue a sa description",
+  [...etrangeres, ...anciennes].filter(([cle]) => !fichierLangues.descriptions[cle]).map(([c]) => c),
+  []
+);
+verifier("trente-et-une descriptions en tout", Object.keys(fichierLangues.descriptions).length, 31);
+
+/* -------------------------------------------- */
+/*  Génie technique                             */
+/* -------------------------------------------- */
+
+console.log("\n— Génie technique —");
+
+const genies = Object.entries(POLARIS.competences).filter(([, d]) => d.parent === "genieTechnique");
+
+verifier("neuf disciplines de génie", genies.length, 9);
+verifier("la famille est abstraite", POLARIS.competences.genieTechnique.abstraite, true);
+
+// Toutes réservées, toutes en INT/INT.
+verifier(
+  "toutes réservées et en INT/INT",
+  genies.every(
+    ([cle, d]) =>
+      POLARIS.competenceAAcquerir(cle) && JSON.stringify(d.attributs) === JSON.stringify(["int", "int"])
+  ),
+  true
+);
+
+// La famille impose Éducation/Culture générale 10 : chaque membre en hérite.
+verifier(
+  "toutes exigent Éducation/Culture générale 10",
+  genies.every(([, d]) =>
+    d.prerequis.some((p) => p.cle === "educationCultureGenerale" && p.niveau === 10)
+  ),
+  true
+);
+
+// Les pré-requis propres, transcrits page 191.
+const prerequisGenie = {
+  genieArchitectureCivile: [],
+  genieArchitectureNavale: [],
+  genieBionique: ["sciencesBiologiePhysiologie"],
+  genieBiotechnologie: ["sciencesBiologiePhysiologie"],
+  genieElectroniqueInformatique: ["electronique", "informatique"],
+  genieLogiciels: ["informatique"],
+  genieNanotechnologie: ["sciencesPhysiqueChimie"],
+  genieRobotique: ["electronique", "informatique"],
+  genieTelecommunications: ["electronique", "informatique"]
+};
+
+for (const [cle, propres] of Object.entries(prerequisGenie)) {
+  const cites = POLARIS.competences[cle].prerequis
+    .map((p) => p.cle)
+    .filter((c) => c !== "educationCultureGenerale")
+    .sort();
+  verifier(`${cle} : ${propres.length ? propres.join(" + ") : "rien de plus"}`, cites, [...propres].sort());
+}
+
+// Les deux architectures sont les seules à n'exiger que le pré-requis familial.
+const sansPrerequisPropre = genies
+  .filter(([, d]) => d.prerequis.length === 1)
+  .map(([c]) => c)
+  .sort();
+verifier(
+  "seules les deux architectures s'en tiennent au pré-requis familial",
+  sansPrerequisPropre,
+  ["genieArchitectureCivile", "genieArchitectureNavale"]
+);
+
+// Descriptions.
+const fichierCompetences = JSON.parse(fs.readFileSync("data/competences.json", "utf8"));
+verifier(
+  "chaque discipline a sa description",
+  genies.filter(([cle]) => !fichierCompetences.descriptions[cle]).map(([c]) => c),
+  []
+);
+
+/* -------------------------------------------- */
+/*  Instanciation des familles                  */
+/* -------------------------------------------- */
+
+console.log("\n— Familles instanciées —");
+
+const parFamille = {};
+for (const [cle, d] of Object.entries(POLARIS.competences)) {
+  if (d.parent) (parFamille[d.parent] ??= []).push(cle);
+}
+
+const effectifs = {
+  artsMartiaux: 3,
+  armesSpecialesContact: 5,
+  armesSpecialesTir: 3,
+  expressionArtistique: 4,
+  commerceTrafic: 7,
+  connaissanceNations: 14,
+  sciencesSpecialisees: 21,
+  tactique: 4,
+  langageDesSignes: 2,
+  langagesSpecialises: 12,
+  languesEtrangeres: 15,
+  languesAnciennes: 4,
+  manoeuvreArmures: 4,
+  pilotage: 8,
+  connaissanceMilieu: 4,
+  artArtisanat: 5,
+  genieTechnique: 9,
+  mecanique: 6
+};
+
+for (const [famille, attendu] of Object.entries(effectifs)) {
+  verifier(`${famille} : ${attendu} membres`, (parFamille[famille] ?? []).length, attendu);
+}
+
+// Toute famille instanciée doit être abstraite : la famille nue ne se joue pas.
+const famillesNonAbstraites = Object.keys(parFamille).filter(
+  (f) => !POLARIS.competences[f].abstraite
+);
+verifier("toute famille peuplée est abstraite", famillesNonAbstraites, []);
+
+// Deux familles restent vides, et pour de bonnes raisons.
+const famillesVides = Object.entries(POLARIS.competences)
+  .filter(([cle, d]) => d.famille && !parFamille[cle])
+  .map(([c]) => c)
+  .sort();
+verifier(
+  "seules deux familles restent vides",
+  famillesVides,
+  ["controleMutations", "pouvoirsEffetPolaris"]
+);
+
+// Un membre hérite toujours de la catégorie de sa famille.
+const categoriesDivergentes = Object.entries(POLARIS.competences)
+  .filter(([, d]) => d.parent && d.categorie !== POLARIS.competences[d.parent].categorie)
+  .map(([c]) => c);
+verifier("chaque membre hérite de la catégorie de sa famille", categoriesDivergentes, []);
+
+// Aucun membre ne peut être lui-même une famille : la hiérarchie est plate.
+const famillesImbriquees = Object.entries(POLARIS.competences)
+  .filter(([, d]) => d.parent && d.famille)
+  .map(([c]) => c);
+verifier("la hiérarchie ne dépasse pas un niveau", famillesImbriquees, []);
+
+// Tout parent cité doit exister et être déclaré comme famille.
+const parentsInvalides = Object.entries(POLARIS.competences)
+  .filter(([, d]) => d.parent && !POLARIS.competences[d.parent]?.famille)
+  .map(([c]) => c);
+verifier("tout parent cité est bien une famille", parentsInvalides, []);
+
+/* --- Quelques transcriptions vérifiées au cas par cas --- */
+
+// Les arts martiaux sont limitatifs et démarrent tous à -3.
+verifier(
+  "les trois arts martiaux démarrent à -3",
+  parFamille.artsMartiaux.every((c) => POLARIS.competences[c].maitriseDepart === -3),
+  true
+);
+
+// Les sciences héritent toutes d'Éducation/Culture générale 10, sauf les deux
+// versions restreintes de la pharmacologie que le livre dit sans pré-requis.
+const sciencesSansEducation = parFamille.sciencesSpecialisees.filter(
+  (c) => !(POLARIS.competences[c].prerequis ?? []).some((p) => p.cle === "educationCultureGenerale")
+);
+verifier(
+  "seules poisons et drogues échappent au pré-requis d'Éducation",
+  sciencesSansEducation.sort(),
+  ["sciencesDrogues", "sciencesPoisons"]
+);
+
+// Chaîne de pré-requis : la nanotechnologie exige Physique/Chimie, qui exige
+// Éducation. Le graphe doit tenir debout.
+verifier(
+  "la nanotechnologie exige Physique/Chimie 10",
+  POLARIS.competences.genieNanotechnologie.prerequis.some(
+    (p) => p.cle === "sciencesPhysiqueChimie" && p.niveau === 10
+  ),
+  true
+);
+verifier(
+  "et Physique/Chimie exige Éducation 10",
+  POLARIS.competences.sciencesPhysiqueChimie.prerequis.some(
+    (p) => p.cle === "educationCultureGenerale" && p.niveau === 10
+  ),
+  true
+);
+
+// Aucun cycle dans les pré-requis : une compétence ne peut pas se réclamer
+// elle-même, directement ou non.
+const cycles = [];
+for (const depart of Object.keys(POLARIS.competences)) {
+  const vus = new Set();
+  const pile = [depart];
+  while (pile.length) {
+    const cle = pile.pop();
+    for (const p of POLARIS.competences[cle]?.prerequis ?? []) {
+      if (p.cle === depart) { cycles.push(depart); pile.length = 0; break; }
+      if (!vus.has(p.cle)) { vus.add(p.cle); pile.push(p.cle); }
+    }
+  }
+}
+verifier("aucun cycle dans les pré-requis", [...new Set(cycles)], []);
+
+// L'expression artistique donne un couple d'attributs par discipline : c'est
+// justement ce que « variables » voulait dire au niveau de la famille.
+verifier("le chant est en INT/PRE", POLARIS.competences.artChant.attributs, ["int", "pre"]);
+verifier("la danse en COO/PRE", POLARIS.competences.artDanse.attributs, ["coo", "pre"]);
+verifier("la famille reste sans attributs", POLARIS.competences.expressionArtistique.attributs, null);
+
+// Le niveau de base d'une Connaissance des nations dépend du personnage.
+verifier("un personnage connaît sa communauté d'origine à +3", POLARIS.niveauxConnaissanceCommunaute.origine, 3);
+verifier("une communauté lointaine à -3", POLARIS.niveauxConnaissanceCommunaute.lointaine, -3);
+verifier("une communauté inconnue est réservée", POLARIS.niveauxConnaissanceCommunaute.inconnue, null);
+verifier("le Soleil noir est réservé", POLARIS.competenceAAcquerir("connaissanceSoleilNoir"), true);
+verifier("l'Hégémonie ne l'est pas", POLARIS.competenceAAcquerir("connaissanceHegemonie"), false);
+
+/* -------------------------------------------- */
 /*  Aptitude naturelle                          */
 /* -------------------------------------------- */
 
@@ -708,11 +1301,13 @@ verifier(
   2
 );
 
-// Les compétences citées sans être déclarées sont recensées, pas inventées.
+// Toutes les compétences citées par les origines sont désormais déclarées :
+// la liste du livre est complète. Le mécanisme de recensement reste en place
+// pour la prochaine section transcrite, mais il ne doit plus rien signaler.
 verifier(
-  "des compétences restent à déclarer",
-  POLARIS.competencesAConfirmer.size > 0,
-  true
+  "aucune compétence d'origine ne reste inconnue",
+  [...POLARIS.competencesAConfirmer],
+  []
 );
 verifier(
   "et toutes sont signalées comme inconnues",
@@ -837,20 +1432,37 @@ verifier("le plafond de maîtrise à 0 est conservé", avecCompetences.capacites
 // L'enregistrement verse les compétences dans la liste générale, marquées
 // spéciales — donc invisibles tant que la capacité n'est pas portée.
 const ajoutees = POLARIS.enregistrerCompetencesDeCapacites(avecCompetences.capacites);
-verifier("une seule compétence enregistrée", ajoutees.length, 1);
-verifier("elle est marquée spéciale", POLARIS.competences.hybride.speciale, true);
-verifier("elle garde son modificateur", POLARIS.competences.hybride.modificateur, -3);
-verifier("elle retient sa capacité d'origine", POLARIS.competences.hybride.capaciteId, "amphibie");
+
+// « Hybride » figure désormais dans la liste officielle : le catalogue ne la
+// réenregistre donc pas, et c'est exactement ce qu'on veut — la définition du
+// livre prime sur celle d'une mutation.
+verifier("aucune compétence réenregistrée", ajoutees.length, 0);
+verifier("Hybride vient bien du livre", POLARIS.competences.hybride.attributs, ["con", "coo"]);
+verifier("et reste une compétence spéciale", POLARIS.competences.hybride.speciale, true);
+
+// Une compétence inédite, elle, est bien versée dans la liste générale.
+const inedite = POLARIS.indexerCapacites({
+  capacites: [
+    {
+      id: "greffon-inedit",
+      nom: "Greffon inédit",
+      competence: { cle: "greffonInedit", attributs: ["con", "vol"], maitriseDepart: -3 }
+    }
+  ]
+});
+verifier("une compétence inédite est enregistrée", POLARIS.enregistrerCompetencesDeCapacites(inedite.capacites), ["greffonInedit"]);
+verifier("marquée spéciale", POLARIS.competences.greffonInedit.speciale, true);
+verifier("et rattachée à sa capacité", POLARIS.competences.greffonInedit.capaciteId, "greffon-inedit");
 
 // Un second passage ne doit rien dupliquer ni écraser.
-verifier("un rappel n'ajoute rien", POLARIS.enregistrerCompetencesDeCapacites(avecCompetences.capacites).length, 0);
+verifier("un rappel n'ajoute rien", POLARIS.enregistrerCompetencesDeCapacites(inedite.capacites).length, 0);
 
 // Une compétence déjà déclarée dans la config prime sur le catalogue.
 const conflit = POLARIS.indexerCapacites({
-  capacites: [{ id: "faux-tir", nom: "Faux tir", competence: { cle: "tir", attributs: ["con", "con"] } }]
+  capacites: [{ id: "faux-tir", nom: "Faux tir", competence: { cle: "escalade", attributs: ["con", "con"] } }]
 });
 POLARIS.enregistrerCompetencesDeCapacites(conflit.capacites);
-verifier("le catalogue n'écrase pas une compétence du livre", POLARIS.competences.tir.attributs, ["per", "coo"]);
+verifier("le catalogue n'écrase pas une compétence du livre", POLARIS.competences.escalade.attributs, ["for", "coo"]);
 
 /* -------------------------------------------- */
 /*  Le fichier livré                            */

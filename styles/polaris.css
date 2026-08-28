@@ -1496,3 +1496,10 @@
   font-size: 0.75rem;
   color: var(--pol-texte-doux);
 }
+
+/* Compétence dont le livre laisse les attributs « variables ». */
+.polaris .polaris-attributs-variables {
+  font-size: 0.68rem;
+  font-style: italic;
+  color: var(--pol-critique);
+}

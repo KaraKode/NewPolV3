@@ -67,11 +67,13 @@ export class PolarisPersonnage extends PolarisActorBase {
           }),
           specialisation: new fields.StringField({ required: false, blank: true }),
 
-          // Une compétence générique est possédée d'office ; une spéciale doit
-          // être achetée, et n'apparaît sur la fiche qu'une fois acquise.
+          // Une compétence générique est possédée d'office. Une spéciale doit
+          // être procurée, une réservée doit être apprise — le livre dit qu'elle
+          // « ne peut être utilisée tant qu'elle n'a pas été apprise ». Ni l'une
+          // ni l'autre n'apparaît sur la fiche avant.
           acquise: new fields.BooleanField({
             required: true,
-            initial: !POLARIS.competences[cle].speciale
+            initial: !POLARIS.competenceAAcquerir(cle)
           })
         });
         return acc;
@@ -111,8 +113,17 @@ export class PolarisPersonnage extends PolarisActorBase {
       competence.label = game.i18n.localize(definition.label);
       competence.categorie = definition.categorie;
       competence.speciale = Boolean(definition.speciale);
-      competence.attributs = definition.attributs;
-      competence.abbrs = definition.attributs.map((a) => this.attributs[a]?.abbr ?? a);
+      competence.abstraite = Boolean(definition.abstraite);
+      competence.aAcquerir = POLARIS.competenceAAcquerir(cle);
+      competence.parent = definition.parent ?? null;
+      competence.prerequis = definition.prerequis ?? [];
+      // Cinq compétences du livre ont des attributs « variables » : c'est l'arme
+      // ou la discipline qui les décide, pas la compétence. Leur couple est donc
+      // nul, et leur base ne peut pas se calculer — la fiche le signale au lieu
+      // d'afficher un zéro trompeur.
+      competence.attributsVariables = !definition.attributs;
+      competence.attributs = definition.attributs ?? [];
+      competence.abbrs = competence.attributs.map((a) => this.attributs[a]?.abbr ?? a);
       competence.marqueurs = (definition.marqueurs ?? []).map(
         (m) => POLARIS.marqueursCompetence[m]?.symbole ?? ""
       );
@@ -130,7 +141,7 @@ export class PolarisPersonnage extends PolarisActorBase {
       // modificateur propre à la compétence — le « -3 » de « CON/COO -3 ».
       competence.modificateur = definition.modificateur ?? 0;
       competence.base =
-        definition.attributs.reduce((total, a) => total + (this.attributs[a]?.aptitude ?? 0), 0) +
+        competence.attributs.reduce((total, a) => total + (this.attributs[a]?.aptitude ?? 0), 0) +
         competence.modificateur;
 
       // Certaines compétences ne peuvent jamais dépasser un plafond : un
@@ -222,9 +233,15 @@ export class PolarisPersonnage extends PolarisActorBase {
     for (const cle of Object.keys(POLARIS.categoriesCompetence)) groupes[cle] = [];
 
     for (const [cle, competence] of Object.entries(this.competences)) {
-      if (competence.speciale && !competence.acquise) continue;
+      // Une famille nue ne se joue pas : « Pilotage » n'est qu'un porte-manteau,
+      // ce sont ses véhicules qui ont des attributs et un niveau.
+      if (competence.abstraite) continue;
 
-      const categorie = competence.categorie ?? "physique";
+      // Spéciales et réservées restent invisibles tant qu'elles ne sont pas
+      // acquises : sans cela, la fiche listerait tout le catalogue du livre.
+      if (competence.aAcquerir && !competence.acquise) continue;
+
+      const categorie = competence.categorie ?? "aptitudesPhysiques";
       groupes[categorie] ??= [];
       groupes[categorie].push({ cle, ...competence });
     }
