@@ -65,10 +65,19 @@ données à saisir du code à écrire.
 Le flux est à sens unique et il faut le préserver :
 
 ```
-config.mjs  →  DataModels (data/)  →  fiches (sheets/) + templates
-                     ↑
-              documents/ (actions)      dice/ (moteur pur)
+data/capacites-speciales.json  →  config.mjs  →  DataModels (data/)  →  fiches + templates
+      (catalogue, chargé au init)                      ↑
+                                        documents/ (actions)   dice/ (moteur pur)
 ```
+
+- **`data/capacites-speciales.json`** — le catalogue des mutations, de l'effet
+  Polaris et des compétences spéciales. Sorti de `config.mjs` parce qu'il est
+  volumineux et rempli à la main : une virgule oubliée ne doit pas empêcher
+  Foundry de démarrer. `chargerCapacitesSpeciales()` le lit au hook `init`,
+  **écarte les entrées fautives une par une** avec un avertissement nommé, puis
+  verse les compétences qu'il déclare dans `POLARIS.competences` — avant que le
+  premier DataModel ne construise son schéma. La règle « aucun chiffre hors de
+  la config » tient toujours : ce fichier EST de la config.
 
 - **`data/`** — les schémas sont **générés** depuis la config. Ajouter un
   attribut, une localisation ou une gravité de blessure dans `config.mjs` le
@@ -115,10 +124,41 @@ retranche.
 **L'ambiance de campagne** est un réglage de monde qui fixe à la fois la Chance
 de tous les personnages et le budget de points de création.
 
+**Une seule bourse : les PC.** Points de création et points de compétence sont
+la même chose. Les attributs, le type génétique et les mutations y puisent tous,
+et une mutation désavantageuse la **regarnit** au lieu de la vider — c'est le
+seul poste qui puisse rendre des points.
+
+**Le niveau de départ d'une compétence appartient à SA SOURCE, pas à la
+compétence.** La compétence Hybride débute à −3 par la mutation Amphibie (qui la
+plafonne à 0) et à +3 par le type hybride naturel (sans plafond). Un personnage
+résout donc ses compétences spéciales en croisant ses traits et son type
+génétique, en retenant la règle **la plus favorable**. D'où `maitriseDepart` et
+`maitriseMax` portés par la source, et jamais recopiés dans
+`POLARIS.competences`.
+
+**Le « −3 » écrit « Empathie (VOL/PRE, −3) » est un niveau de départ**, pas un
+modificateur permanent sur la base. La différence compte : un modificateur
+permanent handicaperait le personnage à vie, un niveau de départ se rattrape.
+Aucune donnée du livre n'utilise `modificateur` à ce jour, et un test le vérifie.
+
+**Une compétence spéciale n'apparaît sur la fiche que si le personnage y a
+accès** — un trait porté ou son type génétique. Le lien est dérivé, jamais
+stocké : retirer la mutation retire la compétence.
+
 ## Pièges Foundry v13 rencontrés
 
 Chacun a coûté un bug en production. Ils ne sont pas devinables.
 
+- **Une clé de traduction ne peut pas être à la fois une valeur et un préfixe.**
+  Foundry passe le fichier de langue dans `expandObject` : déclarer `X` ET
+  `X.description` fait s'écraser une chaîne et un objet, et Foundry **rejette
+  alors le fichier ENTIER**. Le symptôme est spectaculaire mais muet : toute
+  l'interface affiche des clés brutes, y compris celles qui marchaient depuis
+  toujours, pour une seule ligne d'erreur perdue dans la console
+  (`Unable to parse localization file`). Nommer les feuilles explicitement —
+  `X.nom` et `X.description`, jamais `X` et `X.description`. Un test de
+  `feuille.test.mjs` et un auto-diagnostic au hook `ready` couvrent ce cas.
 - **Un « part » d'ApplicationV2 doit rendre UN SEUL élément racine.** Plusieurs
   frères échouent avec `must render a single HTML element`.
 - **`changeTab` exige la classe `tabs`** sur le conteneur de navigation, et les
@@ -140,6 +180,24 @@ Chacun a coûté un bug en production. Ils ne sont pas devinables.
 - **Les champs de formulaire n'héritent d'aucun style du système** : sans règle
   explicite, ils gardent l'habillage clair par défaut de Foundry.
 
+## Diagnostics trompeurs
+
+Deux erreurs de cette base ont désigné le mauvais coupable. Vérifier ces deux
+pistes avant de creuser ailleurs.
+
+- **`a ?? b || c` est une erreur de syntaxe** en JavaScript : `??` ne se mélange
+  pas à `||` sans parenthèses. Node ne le dit pas : il annonce
+  `Private field '#machin' must be declared in an enclosing class` en pointant
+  une ligne située bien avant. Devant ce message alors que la méthode privée
+  existe bel et bien, chercher un `??` mal parenthésé plus bas dans le fichier.
+- **Les fichiers de test ont une portée de module plate.** Chaque `const` y est
+  global : `types`, `trous`, `malus` sont déjà pris. Un nom réutilisé casse tout
+  le fichier avec un `Identifier '…' has already been declared` qui ne dit pas
+  où est le premier.
+
+Un outil de recherche peut afficher `\` là où le fichier contient `//`. Vérifier
+les octets (`sed -n 'Np' f | od -c`) avant de « corriger » un fichier sain.
+
 ## Tests
 
 `test/feuille.test.mjs` **ne teste pas du code, il verrouille une
@@ -148,10 +206,15 @@ livre se signale immédiatement. Quand une valeur du livre est corrigée, corrig
 le cas de test **en même temps** et noter la source retenue.
 
 Plusieurs tests encodent des **invariants** plutôt que des valeurs : monotonie de
-l'aptitude naturelle et du modificateur de dommages, couverture complète des
-tables de localisation, ordre de déclaration des secondaires. Ce sont eux qui ont
-révélé les incohérences des sources — ne pas les supprimer pour faire passer un
-cas.
+l'aptitude naturelle et du modificateur de dommages, couverture sans trou des
+tables de localisation et de la table des mutations au 1D100, ordre de
+déclaration des secondaires, intégrité structurelle des fichiers de langue. Ce
+sont eux qui ont révélé les incohérences des sources — ne pas les supprimer pour
+faire passer un cas.
+
+Attention aux tests écrits quand une table était encore vide : une assertion du
+genre « chaque entrée déclare une compétence » devient fausse dès que la table se
+remplit. C'est l'assertion qu'il faut alors corriger, pas la donnée.
 
 ## Traductions
 
@@ -168,8 +231,16 @@ console.log(d.length?'DESYNC: '+d.join(', '):'synchronisés ('+Object.keys(fr).l
 "
 ```
 
+**En ajoutant une clé, ne jamais en faire le préfixe d'une autre.** `X` et
+`X.description` ne peuvent pas coexister : Foundry rejette le fichier entier (voir
+les pièges plus haut). Écrire `X.nom` et `X.description`. `node test/feuille.test.mjs`
+le vérifie sur les deux langues.
+
 Les **chiffres restent dans la config**, jamais dans les traductions : composer
 les libellés avec `game.i18n.format` et des paramètres.
+
+Un script d'ajout de clés doit passer par un **fichier `.mjs` dans le
+scratchpad** : les apostrophes françaises cassent `node -e '…'` en Bash.
 
 ## Environnement
 
@@ -191,11 +262,27 @@ Ne commiter et ne pousser que sur demande explicite.
 
 ## Travailler avec l'auteur
 
-Les données du livre arrivent **par petits lots dictés**, souvent en réponse à
-une question. Elles contiennent parfois des coquilles : une table non monotone,
-une borne manquante. **Les signaler avant d'implémenter**, proposer la lecture
-cohérente, et marquer le résultat `⚠️ CORRECTION SUPPOSÉE` — c'est ainsi qu'a été
-traitée la table du modificateur de dommages.
+Les données du livre arrivent **par petits lots dictés**, ou en **photos de
+pages** à transcrire. Elles contiennent parfois des coquilles : une table non
+monotone, une borne manquante, une description collée sur la mauvaise entrée.
+**Les signaler avant d'implémenter**, proposer la lecture cohérente, et marquer
+le résultat `⚠️ CORRECTION SUPPOSÉE` — c'est ainsi qu'a été traitée la table du
+modificateur de dommages, dont l'auteur a ensuite rectifié deux tranches.
+
+Une **régularité de la table** est souvent l'argument décisif : toutes les
+tranches de la résistance aux dommages faisant quatre niveaux, un « -25 » sans
+borne basse se lit « 22-25 » sans hésiter. Poser un test sur cette régularité,
+pas seulement sur les valeurs.
+
+L'auteur **édite les fichiers en parallèle**. Avant de réécrire un fichier de
+données qu'il alimente, le relire : plusieurs entrées peuvent avoir été ajoutées
+depuis. Conserver ses formulations, et se contenter de signaler ce qui semble
+fautif plutôt que de corriger son texte en silence.
+
+Pour réclamer une donnée de règle, **demander en prose**. Les questions à choix
+multiples ne la ramènent pas : l'option « je te dicte les vraies » a été choisie
+deux fois sans que la liste suive. Réserver les menus aux vrais arbitrages de
+conception.
 
 Quand une donnée manque, préférer un `null` explicite qui désactive la
 contrainte et le dit à l'écran, plutôt qu'une valeur inventée. L'assistant de
